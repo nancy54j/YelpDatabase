@@ -52,18 +52,6 @@ public class RestaurantUser implements User{
         this.totalCompliments = 0;
     }
 
-    public Set<Review> getReviews(ReviewDataBase data){
-        Set<Review> allReviews = data.returnData;
-        Set<Review> retSet = new HashSet<>();
-        for(Review r : allReviews){
-            if(r.getID().equals(this.id)){
-                retSet.add(r);
-            }
-        }
-        return retSet;
-
-    }
-
 
     public String getID(){
         return id;
