@@ -1,59 +1,56 @@
 package ca.ece.ubc.cpen221.mp5;
 
 import java.util.HashSet;
-import java.util.Random;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
-public class RestaurantUser implements User{
-    private static String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()";
-    private String id;
+public class RestaurantUser implements User {
+    private String UserID;
     private String name;
-    private int reviewCount;
-    private int creationDate; //use unix time for this
-    private String[] friends; //ID of all friends
-    private int useful;
-    private int funny;
-    private int cool;
-    private int fans;
-    private int[] elite;
-    private int avgRating;
-    private int totalCompliments; //all compliments combined together
+    private int aveStar;
+    private Set<String> reviewID;
 
-    public RestaurantUser(String id, String name, int reviewCount, int creationDate, String[] friends, int useful,
-                          int funny, int cool, int fans, int[] elite, int avgRating, int totalCompliments){
-        this.id = id;
+    public RestaurantUser(String name, String userID){
         this.name = name;
-        this.reviewCount = reviewCount;
-        this.creationDate = creationDate;
-        this.friends = friends;
-        this.useful = useful;
-        this.funny = funny;
-        this.cool = cool;
-        this.fans = fans;
-        this.elite = elite;
-        this.avgRating = avgRating;
-        this.totalCompliments = totalCompliments;
+        this.aveStar = 0;
+        this.UserID = userID;
+        this.reviewID = new HashSet<>();
     }
-    //create a new restaurant user for the database
-    public RestaurantUser(MP5Db<Restaurant> users, String name){
-        Random random = new Random();
-        String id = "";
-        for(int i = 0; i < 22; i++){
-            id += chars.charAt(random.nextInt() % 72);
+
+
+    @Override
+    public int GetAverageStar() {
+        return aveStar;
+    }
+
+    @Override
+    public String getReviewByID(String id) throws NoSuchElementException{
+        for(String id_internal: reviewID){
+            // add getID method to review
+            if(id_internal == id){
+                return id_internal;
+            }
         }
-        this.id = id;
-        this.name = name;
-        this.creationDate = (int) System.currentTimeMillis() / 1000;
-        this.useful = 0;
-        this.funny = 0;
-        this.cool = 0;
-        this.fans = 0;
-        this.avgRating = 0;
-        this.totalCompliments = 0;
+        throw new NoSuchElementException("Review id does not match any in database");
     }
 
+    @Override
+    public void editName(String name) throws IllegalArgumentException{
+        if(name != "") {
+            this.name = name;
+        }
+        else{
+            throw new IllegalArgumentException("Name must be a valid string");
+        }
+    }
 
-    public String getID(){
-        return id;
+    @Override
+    public void addReview(String id) {
+        this.reviewID.add(id);
+    }
+
+    @Override
+    public void deleteReview(String reviewID) {
+        
     }
 }

@@ -31,8 +31,8 @@ public class ParseJson {
                     String url = restaurant.getString("url");
                     double longitude = restaurant.getJsonNumber("longitude").doubleValue();
                     double latitude = restaurant.getJsonNumber("latitude").doubleValue();
-                    //TODO: OVER HERE 
-                    JsonArray a = restaurant.getJsonArray("neighborhoods")
+                    //TODO: OVER HERE
+                    JsonArray a = restaurant.getJsonArray("neighborhoods");
                 }
             }
 
@@ -67,20 +67,26 @@ public class ParseJson {
 
     //returns a map of unique ids to its respective restaurant
     public Map<String, Restaurant> getRestaraunts(){
+        return null;
     }
 
     //returns a map of unique ids to its respective user
     public Map<String, User> getUsers(){
+        return null;
         
     }
 
     public Map<String,Set<Review>> restarauntReviews(){
+        return null;
 
     }
 
     public Map<String, Set<Review>> userReviews(){
+        return null;
 
     }
 
-    public Set<Review> getReviews
+    public Set<Review> getReviews(){
+        return null;
+    }
 }
