@@ -1,5 +1,8 @@
 package ca.ece.ubc.cpen221.mp5;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class Business implements Reviewable{
     private static int gen_id = 0;
 
@@ -7,15 +10,16 @@ public class Business implements Reviewable{
     public final String name;
     public final String full_address;
     public final String city;
-    public final String neighbourhood;
+    public final String[] neighbourhood;
     public final String state;
     private double latitude;
     private double longitude;
     private double stars; //between 0 and 5;
     private int reviewCount;
+    private Set<String> reviews;
 
     public Business(String business_id, String name, String full_address, String city, double latitude,
-                    double longitude, String neighbourhood, String state, double stars, int reviewCount){
+                    double longitude, String[] neighbourhood, String state, double stars, int reviewCount){
         this.id = business_id;
         this.name = name;
         this.full_address = full_address;
@@ -26,9 +30,10 @@ public class Business implements Reviewable{
         this.reviewCount = reviewCount;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.reviews = new HashSet<>();
     }
 
-    public Business(int latitude, int longitude, String name, String neighbourhood, String full_address,
+    public Business(double latitude, double longitude, String name, String[] neighbourhood, String full_address,
                     String city, String state){
         this.name = name;
         this.latitude = latitude;
@@ -39,6 +44,7 @@ public class Business implements Reviewable{
         this.state = state;
         this.stars = 0;
         this.reviewCount = 0;
+        this.reviews = new HashSet<>();
 
         this.id = "+NEW+" + gen_id++;
     }
@@ -53,11 +59,36 @@ public class Business implements Reviewable{
             throw new IllegalArgumentException("Review must pertain to this restaurant");
         }
         stars = (stars*reviewCount + r.rating) / ++reviewCount;
+        this.reviews.add(r.id);
     }
 
     //return the rating in increments of .5's
     public double getRating(){
         return Math.round(stars * 2) / 2f;
     }
+
+    public Set<String> getReviews(){
+        return reviews;
+    }
+
+    public boolean deleteReview(Review r){
+        if(this.reviews.contains(r.id)){
+            this.reviews.remove(r.id);
+            stars = (stars*reviewCount - r.rating)/ --reviewCount;
+            return true;
+        }
+        return false;
+    }
+
+
+    @Override
+    public boolean equals(Object o){
+        if(o instanceof Restaurant){
+            Restaurant r = (Restaurant) o;
+            return r.id.equals(this.id);
+        }
+        return false;
+    }
+
 
 }

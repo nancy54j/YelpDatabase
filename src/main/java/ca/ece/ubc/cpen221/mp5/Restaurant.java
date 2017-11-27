@@ -7,26 +7,25 @@ public class Restaurant extends Business{
 
     public final String url;
     private int price;
-    Map<String, Boolean> att;
     private Set<String> categories;
     private Set<String> schools;
 
+
     //if loading one from the database
     public Restaurant(String business_id, String name, String url, String full_address, String city,
-                      String neighbourhood, String state, int latitude, int longitude, int stars,
-                      int reviewCount, int price, Map<String, Boolean> att,
-                      Collection<? extends String> categories, Collection<? extends String> schools){
+                      String[] neighbourhood, String state, double latitude, double longitude, double stars,
+                      int reviewCount, int price, Collection<? extends String> categories,
+                      Collection<? extends String> schools){
 
         super(business_id, name, full_address, city, latitude, longitude, neighbourhood, state, stars, reviewCount);
         this.url = url;
         this.price = price;
-        this.att = att;
         this.categories = new HashSet<>(categories);
         this.schools = new HashSet<>(schools);
     }
 
     //creating a new restaurant
-    public Restaurant(int latitude, int longitude, String name, String neighbourhood, String full_address,
+    public Restaurant(double latitude, double longitude, String name, String[] neighbourhood, String full_address,
                       String city, String state){
         super(latitude, longitude, name, neighbourhood, full_address, city, state);
 
@@ -34,7 +33,6 @@ public class Restaurant extends Business{
         String nameurl = name.replace(' ', '-');
         this.url = "http://www.yelp.com/biz/" + nameurl;
         this.price = 0;
-        this.att = new HashMap<>();
         this.categories = new HashSet<>();
         this.schools = new HashSet<>();
     }
@@ -54,7 +52,5 @@ public class Restaurant extends Business{
     public Set<String> getSchool(){
         return new HashSet<>(schools);
     }
-
-
 
 }

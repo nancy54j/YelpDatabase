@@ -5,21 +5,43 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 public class RestaurantUser implements User {
-    private String UserID;
+    private static int gen_id;
+    public final String UserID;
+    public final String url;
     private String name;
-    private int aveStar;
+    private double aveStar;
+    private int reviewCount;
     private Set<String> reviewID;
+    private int[] votes;//funny useful cool
 
-    public RestaurantUser(String name, String userID){
+    public RestaurantUser(String name, String userID, String url, double aveStar, int[] votes, int reviewCount){
         this.name = name;
-        this.aveStar = 0;
+        this.aveStar = aveStar;
+        this.url = url;
         this.UserID = userID;
         this.reviewID = new HashSet<>();
+        this.votes = votes;
+        this.reviewCount = reviewCount;
+    }
+
+    //create new user
+    public RestaurantUser(String name){
+        this.name = name;
+        this.UserID = "+NEW+" + gen_id++;
+        this.url = "http://www.yelp.com/user_details?userid=" + gen_id;
+        this.aveStar = 0;
+        reviewID = new HashSet<>();
+        votes = new int[] {0, 0, 0};
+        this.reviewCount = 0;
+    }
+
+    public Set<String> getReviews(){
+        return this.reviewID;
     }
 
 
     @Override
-    public int GetAverageStar() {
+    public double GetAverageStar() {
         return aveStar;
     }
 
@@ -45,12 +67,36 @@ public class RestaurantUser implements User {
     }
 
     @Override
-    public void addReview(String id) {
-        this.reviewID.add(id);
+    public boolean addReview(Review r) {
+        if(r.user.equals(this.UserID)){
+            aveStar = (aveStar*reviewCount + r.rating) / ++reviewCount;
+            this.reviewID.add(r.id);
+            return true;
+        }
+        return false;
     }
 
     @Override
-    public void deleteReview(String reviewID) {
-        
+    public boolean deleteReview(Review r) {
+        if(this.reviewID.contains(r.id)){
+            this.reviewID.remove(r.id);
+            aveStar = (aveStar*reviewCount - r.rating) / --reviewCount;
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean equals(Object o){
+        if(o instanceof RestaurantUser){
+            RestaurantUser ru = (RestaurantUser) o;
+            return ru.UserID.equals(this.UserID);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode(){
+        return votes[0] + reviewCount;
     }
 }

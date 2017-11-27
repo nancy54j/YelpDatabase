@@ -36,6 +36,10 @@ public class Review {
         this.text = "";
     }
 
+    String getID(){
+        return id;
+    }
+
     //create a new review with text
     public Review(double starRating, String text, String user_id, String business_id){
         gen_id++;
@@ -58,6 +62,6 @@ public class Review {
 
     @Override
     public int hashCode(){
-        return user.hashCode();
+        return user.hashCode() + business.hashCode();
     }
 }
