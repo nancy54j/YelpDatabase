@@ -15,8 +15,8 @@ public class YelpDataBase implements MP5Db{
 
     //initalize yelpDataBase
     public YelpDataBase(){
-        ParseJson pj = new ParseJson("./data/dataset/users.json", "./data/dataset/restaurants.json",
-                "./data/dataset/reviews.json");
+        ParseJson pj = new ParseJson("./data/users.json", "./data/restaurants.json",
+                "./data/reviews.json");
 
         restaurants = pj.getRestaurants();
         reviews = pj.getReviews();
@@ -101,13 +101,58 @@ public class YelpDataBase implements MP5Db{
      * returns a set of ids that represents the ID of a restaurant, such that some field within the restaurant
      * matches the query string
      * (personally, a list would be a better implementation, because then there is ordinality, and different
-     * weights and relevancy can be assigned to different parameters 
+     * weights and relevancy can be assigned to different parameters
      *
      * @param queryString
      * @return
      */
-    public Set<String> getMatches(String queryString){
+    public Set<Restaurant> getMatches(String queryString){
+        Set<Restaurant> retSet = new HashSet<>();
 
+        for(Restaurant r : restaurants){
+            //do some light manipulation to the string for better matches
+
+            String[] query = queryString.toLowerCase().split("//s+");
+            String tosearch = ".+";
+            for(String s : query){
+                tosearch += s + ".+";
+            }
+
+            //added is to slightly improve performance
+            boolean added = false;
+            if(r.city.toLowerCase().matches(tosearch) || r.full_address.toLowerCase().matches(tosearch) ||
+                    r.state.toLowerCase().matches(tosearch) || r.name.toLowerCase().matches(tosearch)){
+               retSet.add(r);
+            }
+            else {
+                for (String s : r.neighbourhood) {
+                    s.toLowerCase();
+                    if (s.matches(tosearch)) {
+                        added = true;
+                        retSet.add(r);
+                        break;
+                    }
+                }
+                if(added) continue;
+                for (String s : r.getCategory()) {
+                    s.toLowerCase();
+                    if (s.matches(tosearch)) {
+                        added = true;
+                        retSet.add(r);
+                        break;
+                    }
+                }
+                if(added) continue;
+                for (String s : r.getSchool()) {
+                    s.toLowerCase();
+                    if (s.matches(tosearch)) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        return retSet;
     }
 
     /**
@@ -118,7 +163,7 @@ public class YelpDataBase implements MP5Db{
      * @return
      */
     public String kMeansClusters_json(int k){
-        return "lol";
+        
     }
 
     public ToDoubleBiFunction<MP5Db, String> getPredictorFunction(String user){
@@ -127,6 +172,7 @@ public class YelpDataBase implements MP5Db{
 
     public static void main(String[] args){
         YelpDataBase ydb = new YelpDataBase();
+        System.out.println(ydb.getMatches("coffee"));
 
     }
 

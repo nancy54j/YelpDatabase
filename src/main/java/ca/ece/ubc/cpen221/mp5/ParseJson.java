@@ -31,7 +31,8 @@ public class ParseJson {
             BufferedReader restaurantReader = new BufferedReader(new FileReader(businesses));
             String line;
             while((line = restaurantReader.readLine()) != null){
-                JsonParser parseRestaurant = Json.createParser(new StringReader(line));
+                StringReader sr = new StringReader(line);
+                JsonParser parseRestaurant = Json.createParser(sr);
                 JsonObject restaurant = parseRestaurant.getObject();
 
                 if(restaurant.getBoolean("open") && restaurant.getString("type").equals("business")){
@@ -130,7 +131,7 @@ public class ParseJson {
             }
         }
         catch(Exception e){
-            System.out.println(e.getStackTrace());
+            System.out.println("SOMETHING HAPPENED");
         }
     }
 
