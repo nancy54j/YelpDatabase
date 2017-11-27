@@ -1,8 +1,6 @@
 package ca.ece.ubc.cpen221.mp5;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.ToDoubleBiFunction;
 
 public class YelpDataBase implements MP5Db{
@@ -163,7 +161,124 @@ public class YelpDataBase implements MP5Db{
      * @return
      */
     public String kMeansClusters_json(int k){
-        
+        if(restaurants.size() < k){
+            throw new IllegalArgumentException("k is too big");
+        }
+
+        List<Node> nodes = new ArrayList<>(k);
+        Map<String, double[]> memberlocation = new HashMap<>();
+
+        //Split the restaurant set into k equal sets
+        Iterator it = restaurants.iterator();
+        int amount = restaurants.size() / k + 1;
+        for(int i = 0; i < k; i++){
+            nodes.add(new Node());
+            for(int ii = 0; i < amount && it.hasNext(); ii++){
+                Restaurant r = (Restaurant) it.next();
+                memberlocation.put(r.id, r.getLocation());
+                nodes.get(i).addmember(r.id, r.getLocation());
+            }
+            nodes.get(i).calcNewLocation();
+        }
+
+        //actual computing: moved is used to terminate the loop
+        boolean moved = true;
+        while(moved){
+            moved = false;
+
+            //check each restaurant
+            for(String s : memberlocation.keySet()){
+                //good enough for lat/long...
+                double shortestdistance = 1000000000;
+                int assign = 0;
+                //figure out which node is the closest
+                for(int i = 0; i < nodes.size(); i++) {
+                    double distance = nodes.get(i).calcdistance(memberlocation.get(s));
+                    if(distance < shortestdistance){
+                        assign = i;
+                        shortestdistance = distance;
+                    }
+                }
+                //if it wasn't the previously assigned node, change it
+                if(!nodes.get(assign).getMembers().contains(s)){
+                    moved = true;
+                    nodes.get(assign).addmember(s, memberlocation.get(s));
+                    for(Node n : nodes){
+                        n.removemember(s);
+                    }
+                }
+            }
+
+            //calculate new locations
+            for(Node n : nodes){
+                n.calcNewLocation();
+            }
+        }
+
+        //{"x": number, "y": number, "name": "string", "cluser": int, "weight": int}
+        String retJson = "{";
+        for(Node n : nodes){
+
+        }
+
+
+    }
+
+    //used by k-means
+    private class Node{
+        Map<String, double[]> memberlocations;
+        double[] location;
+
+        Node(){
+            memberlocations = new HashMap<>();
+            location = new double[]{0, 0};
+        }
+
+        void addmember(String s, double[] location){
+            memberlocations.put(s, location);
+        }
+
+        void removemember(String s){
+            memberlocations.remove(s);
+        }
+
+        Set<String> getMembers(){
+            return memberlocations.keySet();
+        }
+
+        double[] calcNewLocation(){
+            double[] newlocation = new double[] {0,0};
+            for(double[] d : memberlocations.values()){
+                newlocation[0] += d[0];
+                newlocation[1] += d[1];
+            }
+            newlocation[0] /= memberlocations.size();
+            newlocation[1] /= memberlocations.size();
+
+            location = newlocation;
+            return newlocation;
+        }
+
+        private double calcdistance(double[] a){
+            double dx = a[0] - location[0];
+            double dy = a[1] - location[1];
+            return Math.sqrt(dx*dx + dy*dy);
+        }
+
+        String toJsonString(){
+            String json = "[";
+            for(String s : memberlocations.keySet()){
+                json += " " + s + ",";
+            }
+            if(json.length() > 1){
+                json = json.substring(0, json.length() - 2) + "]";
+            }
+            else{
+                json += "]";
+            }
+
+            return json;
+        }
     }
 
     public ToDoubleBiFunction<MP5Db, String> getPredictorFunction(String user){
