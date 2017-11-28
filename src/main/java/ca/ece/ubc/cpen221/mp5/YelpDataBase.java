@@ -104,46 +104,44 @@ public class YelpDataBase implements MP5Db{
      * @param queryString
      * @return
      */
-    public Set<Restaurant> getMatches(String queryString){
-        Set<Restaurant> retSet = new HashSet<>();
+    public Set<String> getMatches(String queryString){
+        Set<String> retSet = new HashSet<>();
 
         for(Restaurant r : restaurants){
             //do some light manipulation to the string for better matches
 
             String[] query = queryString.toLowerCase().split("//s+");
-            String tosearch = ".+";
+            String tosearch = ".*";
             for(String s : query){
-                tosearch += s + ".+";
+                tosearch += s + ".*";
             }
 
             //added is to slightly improve performance
             boolean added = false;
             if(r.city.toLowerCase().matches(tosearch) || r.full_address.toLowerCase().matches(tosearch) ||
                     r.state.toLowerCase().matches(tosearch) || r.name.toLowerCase().matches(tosearch)){
-               retSet.add(r);
+               retSet.add(r.name);
             }
             else {
                 for (String s : r.neighbourhood) {
-                    s.toLowerCase();
-                    if (s.matches(tosearch)) {
+                    if (s.toLowerCase().matches(tosearch)) {
                         added = true;
-                        retSet.add(r);
+                        retSet.add(r.name);
                         break;
                     }
                 }
                 if(added) continue;
                 for (String s : r.getCategory()) {
-                    s.toLowerCase();
-                    if (s.matches(tosearch)) {
+                    if (s.toLowerCase().matches(tosearch)) {
                         added = true;
-                        retSet.add(r);
+                        retSet.add(r.name);
                         break;
                     }
                 }
                 if(added) continue;
                 for (String s : r.getSchool()) {
-                    s.toLowerCase();
-                    if (s.matches(tosearch)) {
+                    if (s.toLowerCase().matches(tosearch)) {
+                        retSet.add(r.name);
                         break;
                     }
                 }
@@ -172,8 +170,8 @@ public class YelpDataBase implements MP5Db{
         Iterator it = restaurants.iterator();
         int amount = restaurants.size() / k + 1;
         for(int i = 0; i < k; i++){
-            nodes.add(new Node());
-            for(int ii = 0; i < amount && it.hasNext(); ii++){
+            nodes.add(new Node(i));
+            for(int ii = 0; ii < amount && it.hasNext(); ii++){
                 Restaurant r = (Restaurant) it.next();
                 memberlocation.put(r.id, r.getLocation());
                 nodes.get(i).addmember(r.id, r.getLocation());
@@ -193,7 +191,7 @@ public class YelpDataBase implements MP5Db{
                 int assign = 0;
                 //figure out which node is the closest
                 for(int i = 0; i < nodes.size(); i++) {
-                    double distance = nodes.get(i).calcdistance(memberlocation.get(s));
+                    double distance = nodes.get(i).calcDistance(memberlocation.get(s));
                     if(distance < shortestdistance){
                         assign = i;
                         shortestdistance = distance;
@@ -202,10 +200,10 @@ public class YelpDataBase implements MP5Db{
                 //if it wasn't the previously assigned node, change it
                 if(!nodes.get(assign).getMembers().contains(s)){
                     moved = true;
-                    nodes.get(assign).addmember(s, memberlocation.get(s));
                     for(Node n : nodes){
                         n.removemember(s);
                     }
+                    nodes.get(assign).addmember(s, memberlocation.get(s));
                 }
             }
 
@@ -215,23 +213,28 @@ public class YelpDataBase implements MP5Db{
             }
         }
 
-        //{"x": number, "y": number, "name": "string", "cluser": int, "weight": int}
-        String retJson = "{";
-        for(Node n : nodes){
-
+        if(nodes.isEmpty()){
+            return "[]";
         }
+        String retjson = "[";
+        for(Node n : nodes){
+            retjson += n.toJsonString() + ", ";
+        }
+        retjson = retjson.substring(0, retjson.length() -2) + "]";
 
-
+        return retjson;
     }
 
     //used by k-means
     private class Node{
         Map<String, double[]> memberlocations;
         double[] location;
+        int number; //identifies this node from another node
 
-        Node(){
+        Node(int number){
             memberlocations = new HashMap<>();
             location = new double[]{0, 0};
+            this.number = number;
         }
 
         void addmember(String s, double[] location){
@@ -259,23 +262,23 @@ public class YelpDataBase implements MP5Db{
             return newlocation;
         }
 
-        private double calcdistance(double[] a){
+        private double calcDistance(double[] a){
             double dx = a[0] - location[0];
             double dy = a[1] - location[1];
             return Math.sqrt(dx*dx + dy*dy);
         }
 
+        //{"x": number, "y": number, "name": "string", "cluser": int, "weight": int}
         String toJsonString(){
-            String json = "[";
+            String json = "";
+            if(memberlocations.isEmpty()){
+                return "{}";
+            }
             for(String s : memberlocations.keySet()){
-                json += " " + s + ",";
+                json += "{\"x\": " + memberlocations.get(s)[0] + ", \"y\": " + memberlocations.get(s)[1] +
+                        ", \"name\": \"" + s + "\", \"cluster\": " + number + ", \"weight\": " + "1.0" + "}, ";
             }
-            if(json.length() > 1){
-                json = json.substring(0, json.length() - 2) + "]";
-            }
-            else{
-                json += "]";
-            }
+            json = json.substring(0, json.length() - 2);
 
             return json;
         }
@@ -288,7 +291,7 @@ public class YelpDataBase implements MP5Db{
     public static void main(String[] args){
         YelpDataBase ydb = new YelpDataBase();
         System.out.println(ydb.getMatches("coffee"));
-
+        System.out.println(ydb.kMeansClusters_json(5));
     }
 
 

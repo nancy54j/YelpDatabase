@@ -32,8 +32,8 @@ public class ParseJson {
             String line;
             while((line = restaurantReader.readLine()) != null){
                 StringReader sr = new StringReader(line);
-                JsonParser parseRestaurant = Json.createParser(sr);
-                JsonObject restaurant = parseRestaurant.getObject();
+                JsonReader parseRestaurant = Json.createReader(sr);
+                JsonObject restaurant = parseRestaurant.readObject();
 
                 if(restaurant.getBoolean("open") && restaurant.getString("type").equals("business")){
                     String url = restaurant.getString("url");
@@ -79,16 +79,16 @@ public class ParseJson {
             //parse users
             BufferedReader userReader = new BufferedReader(new FileReader(users));
             while((line = userReader.readLine()) != null){
-                JsonParser parseUser = Json.createParser(new StringReader(line));
-                JsonObject user = parseUser.getObject();
+                JsonReader parseUser = Json.createReader(new StringReader(line));
+                JsonObject user = parseUser.readObject();
 
                 if(user.getString("type").equals("user")) {
                     String url = user.getString("url");
                     JsonObject vote = user.getJsonObject("votes");
                     int[] votes = new int[]{vote.getInt("funny"), vote.getInt("useful"), vote.getInt("cool")};
-                    int reviewCount = vote.getInt("review_count");
-                    String user_id = vote.getString("user_id");
-                    String name = vote.getString("name");
+                    int reviewCount = user.getInt("review_count");
+                    String user_id = user.getString("user_id");
+                    String name = user.getString("name");
                     double aveStar = user.getJsonNumber("average_stars").doubleValue();
 
                     RestaurantUser ru = new RestaurantUser(name, user_id, url, aveStar, votes, reviewCount);
@@ -101,8 +101,8 @@ public class ParseJson {
             //parse reviews
             BufferedReader reviewReader = new BufferedReader(new FileReader(reviews));
             while((line = reviewReader.readLine()) != null){
-                JsonParser parseReview = Json.createParser(new StringReader(line));
-                JsonObject review = parseReview.getObject();
+                JsonReader parseReview = Json.createReader(new StringReader(line));
+                JsonObject review = parseReview.readObject();
 
                 //check if it is a date
                 if(review.getString("type").equals("review")){
