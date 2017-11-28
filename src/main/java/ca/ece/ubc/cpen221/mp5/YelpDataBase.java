@@ -284,8 +284,74 @@ public class YelpDataBase implements MP5Db{
         }
     }
 
-    public ToDoubleBiFunction<MP5Db, String> getPredictorFunction(String user){
-        return null;
+    public double linearRegression(YelpDataBase database,String id){
+
+        RestaurantUser user = database.userMap.get(id);
+        Set<String> reviewID = user.getReviews();
+        Set<Review> reviews = new HashSet<>();
+        //map all review id written by users to their ratings
+        for(String userid : reviewID){
+            reviews.add(database.revMap.get(userid));
+        }
+
+        //map all reviews written by users to priceyness
+        LinkedList<Double> price = new LinkedList<>();
+        LinkedList<Double> rating = new LinkedList<>();
+
+        for(Review review : reviews){
+            String businessID = review.business;
+            Restaurant restaurant = database.restMap.get(businessID);
+
+            //map price vs rating
+            price.add((double)restaurant.getPrice());
+            rating.add(review.rating);
+        }
+
+        //calculate Sxx
+        double sumSxx = price.stream().reduce(0.0, (a, b) -> a+b);
+        double aveSxx = sumSxx/price.size(); //average price
+        double Sxx = price.stream().reduce(0.0, (a, b) -> Math.pow(a-aveSxx,2) + Math.pow(b-aveSxx,2));
+
+        //calculate Syy
+        double sumSyy = rating.stream().reduce(0.0, (a, b) -> a+b);
+        double aveSyy = sumSyy/rating.size(); //average rating
+        double Syy = rating.stream().reduce(0.0, (a, b) -> Math.pow(a-aveSyy,2) + Math.pow(b-aveSyy,2));
+
+        //calculate Sxy
+        LinkedList<Double> priceDiff = new LinkedList<>();
+        price.stream().map(x -> priceDiff.add(x-aveSxx));
+
+        LinkedList<Double> ratingDiff = new LinkedList<>();
+        rating.stream().map(y -> ratingDiff.add(y-aveSyy));
+
+        LinkedList<Double> SxyList = new LinkedList<>();
+        ratingDiff.stream().flatMap((a1) -> priceDiff.stream()
+                .map((a2) -> SxyList.add(a1*a2)));
+
+        double Sxy = SxyList.stream().reduce(0.0, (a,b) -> a+b);
+
+        //b = Sxy / Sxx
+        // a = mean(y) - b * mean(x)
+        // R2 = Sxy2 / (Sxx Syy)
+
+        //store R2?
+
+        return aveSyy - (Sxy/Sxx)*aveSxx;
+    }
+    /**
+     *
+     * @param user
+     *            represents a user_id in the database
+     * @return a function that predicts the user's ratings for objects (of type
+     *         T) in the database of type MP5Db<T>. The function that is
+     *         returned takes two arguments: one is the database and other other
+     *         is a String that represents the id of an object of type T.
+     */
+    public ToDoubleBiFunction<YelpDataBase, String> getPredictorFunction(String user){
+
+        ToDoubleBiFunction<YelpDataBase, String> predictRating = (x,y)->linearRegression(x,y);
+
+        return predictRating;
     }
 
     public static void main(String[] args){
@@ -293,6 +359,13 @@ public class YelpDataBase implements MP5Db{
         System.out.println(ydb.getMatches("coffee"));
         System.out.println(ydb.kMeansClusters_json(6));
         System.out.println(ydb.getMatches("chinese"));
+
+        System.out.println(ydb.users);
+
+        ToDoubleBiFunction<YelpDataBase, String> func = ydb.getPredictorFunction("aKCad593EqphYYLIJ2vRlA");
+        System.out.println(func.applyAsDouble(ydb, "_NH7Cpq3qZkByP5xR4gXog"));
+
+
     }
 
 

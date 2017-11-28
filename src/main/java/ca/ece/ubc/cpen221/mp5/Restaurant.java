@@ -10,7 +10,6 @@ public class Restaurant extends Business{
     private Set<String> categories;
     private Set<String> schools;
 
-
     //if loading one from the database
     public Restaurant(String business_id, String name, String url, String full_address, String city,
                       String[] neighbourhood, String state, double latitude, double longitude, double stars,
@@ -51,6 +50,10 @@ public class Restaurant extends Business{
 
     public Set<String> getSchool(){
         return new HashSet<>(schools);
+    }
+
+    public int getPrice(){
+        return this.price;
     }
 
 }
