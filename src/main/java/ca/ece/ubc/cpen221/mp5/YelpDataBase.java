@@ -291,7 +291,8 @@ public class YelpDataBase implements MP5Db{
     public static void main(String[] args){
         YelpDataBase ydb = new YelpDataBase();
         System.out.println(ydb.getMatches("coffee"));
-        System.out.println(ydb.kMeansClusters_json(5));
+        System.out.println(ydb.kMeansClusters_json(6));
+        System.out.println(ydb.getMatches("chinese"));
     }
 
 
