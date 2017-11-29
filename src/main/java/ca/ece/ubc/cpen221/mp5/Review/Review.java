@@ -1,4 +1,4 @@
-package ca.ece.ubc.cpen221.mp5;
+package ca.ece.ubc.cpen221.mp5.Review;
 
 import java.util.Arrays;
 

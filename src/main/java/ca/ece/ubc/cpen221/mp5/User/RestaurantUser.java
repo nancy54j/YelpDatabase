@@ -1,4 +1,6 @@
-package ca.ece.ubc.cpen221.mp5;
+package ca.ece.ubc.cpen221.mp5.User;
+
+import ca.ece.ubc.cpen221.mp5.Review.Review;
 
 import java.util.HashSet;
 import java.util.NoSuchElementException;

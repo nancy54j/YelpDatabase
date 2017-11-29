@@ -1,9 +1,13 @@
-package ca.ece.ubc.cpen221.mp5;
+package ca.ece.ubc.cpen221.mp5.Database;
+
+import ca.ece.ubc.cpen221.mp5.Business.Restaurant;
+import ca.ece.ubc.cpen221.mp5.Review.Review;
+import ca.ece.ubc.cpen221.mp5.User.RestaurantUser;
 
 import java.util.*;
 import java.util.function.ToDoubleBiFunction;
 
-public class YelpDataBase implements MP5Db{
+public class YelpDataBase implements MP5Db {
     Set<Restaurant> restaurants;
     Set<Review> reviews;
     Set<RestaurantUser> users;
@@ -284,10 +288,10 @@ public class YelpDataBase implements MP5Db{
         }
     }
 
-    public double linearRegression(YelpDataBase database,String id){
+    public double linearRegression(YelpDataBase database,String id, String user){
 
-        RestaurantUser user = database.userMap.get(id);
-        Set<String> reviewID = user.getReviews();
+        RestaurantUser lol = database.userMap.get(id);
+        Set<String> reviewID = lol.getReviews();
         Set<Review> reviews = new HashSet<>();
         //map all review id written by users to their ratings
         for(String userid : reviewID){
@@ -338,6 +342,7 @@ public class YelpDataBase implements MP5Db{
 
         return aveSyy - (Sxy/Sxx)*aveSxx;
     }
+
     /**
      *
      * @param user
@@ -349,7 +354,7 @@ public class YelpDataBase implements MP5Db{
      */
     public ToDoubleBiFunction<YelpDataBase, String> getPredictorFunction(String user){
 
-        ToDoubleBiFunction<YelpDataBase, String> predictRating = (x,y)->linearRegression(x,y);
+        ToDoubleBiFunction<YelpDataBase, String> predictRating = (x,y)->linearRegression(x,y, user);
 
         return predictRating;
     }
@@ -362,8 +367,8 @@ public class YelpDataBase implements MP5Db{
 
         System.out.println(ydb.users);
 
-        ToDoubleBiFunction<YelpDataBase, String> func = ydb.getPredictorFunction("aKCad593EqphYYLIJ2vRlA");
-        System.out.println(func.applyAsDouble(ydb, "_NH7Cpq3qZkByP5xR4gXog"));
+        ToDoubleBiFunction<YelpDataBase, String> func = ydb.getPredictorFunction("VfqkoiMTtw3_BVk9wAB_YA");
+        System.out.println(func.applyAsDouble(ydb, "    _NH7Cpq3qZkByP5xR4gXog"));
 
 
     }

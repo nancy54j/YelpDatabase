@@ -1,9 +1,12 @@
-package ca.ece.ubc.cpen221.mp5;
+package ca.ece.ubc.cpen221.mp5.Business;
+
+import ca.ece.ubc.cpen221.mp5.Review.Review;
+import ca.ece.ubc.cpen221.mp5.Review.Reviewable;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public class Business implements Reviewable{
+public class Business implements Reviewable {
     private static int gen_id = 0;
 
     public final String id;

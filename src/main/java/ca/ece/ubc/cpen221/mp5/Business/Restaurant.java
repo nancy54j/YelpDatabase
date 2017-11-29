@@ -1,8 +1,10 @@
-package ca.ece.ubc.cpen221.mp5;
+package ca.ece.ubc.cpen221.mp5.Business;
+
+import ca.ece.ubc.cpen221.mp5.Business.Business;
 
 import java.util.*;
 
-public class Restaurant extends Business{
+public class Restaurant extends Business {
     private static int gen_id = 0;
 
     public final String url;
