@@ -34,7 +34,7 @@ public class YelpDataBase implements MP5Db {
 
     //i'm not editing anything, so I don't violate concurrency/rep invariants
     public String getRestaurant(String restID) throws IllegalArgumentException{
-        if(restMap.keySet().contains(restID)){
+        if(!restMap.keySet().contains(restID)){
             throw new IllegalArgumentException();
         }
 
@@ -44,15 +44,10 @@ public class YelpDataBase implements MP5Db {
     public boolean addUser(String restUser)throws JsonParsingException {
 
     }
-    //double latitude, double longitude, String name, String[] neighbourhood, String full_address,
-    //String city, String state
-    //me
-    //{{\"latitide\": <double>, \"longitude\": <double>, \"name\": \"<name>\", " +
-    //                "\"neighborhood\": [\"<neighborhoods>\", \"<neighborhood>\"], \"full_address\": \"<full_address\"" +
-    //                       ", \"city\": \"<city>\", \"state\": \"<state>\"}
-    public boolean addRestaurant(String rest)throws JsonParsingException, IllegalArgumentException{
+
+    public String addRestaurant(String rest)throws JsonParsingException{
         if(restMap.keySet().contains(rest)){
-            return false;
+            return "Something went wrong. Add unsuccessful";
         }
         synchronized(modifydatabase){
             JsonObject jsonrestaurant = Json.createReader(new StringReader(rest)).readObject();
@@ -65,9 +60,20 @@ public class YelpDataBase implements MP5Db {
                 neighborhood[i] = s.toString();
                 i++;
             }
-            double latitude = jsonrestaurant.getJsonNumber("latitude").doubleValue();
 
-            Restaurant r = Restaurant()
+            Restaurant r = new Restaurant(jsonrestaurant.getJsonNumber("latitude").doubleValue(),
+                    jsonrestaurant.getJsonNumber("longitude").doubleValue(),
+                    jsonrestaurant.getString("name"), neighborhood,
+                    jsonrestaurant.getString("full_address"), jsonrestaurant.getString("city"),
+                    jsonrestaurant.getString("state"));
+
+            if(addnewRestaurant(r)){
+                return "Add success:" + r.toString();
+            }
+            else{
+                return "Something went wrong internally. Add unsuccessful";
+            }
+
         }
     }
 

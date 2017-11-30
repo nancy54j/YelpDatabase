@@ -3,6 +3,7 @@ package ca.ece.ubc.cpen221.mp5.Server;
 import ca.ece.ubc.cpen221.mp5.*;
 import ca.ece.ubc.cpen221.mp5.Database.YelpDataBase;
 
+import javax.json.stream.JsonParsingException;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -55,19 +56,35 @@ public class YelpServer {
             while((line = br.readLine()) != null){
                 try{
                     if(line.matches("^GETRESTAURANT .*")){
-                        Matcher m = Pattern.compile("^(?:GETRESTAURANT) (.*)$").matcher(line);
+                        Matcher m = Pattern.compile("^(?:GETRESTAURANT )(.*)$").matcher(line);
                         if(m.find()){
-                            out.println(ydb.getRestaurant(m.group(0)));
+                            try {
+                                out.println(ydb.getRestaurant(m.group(0)));
+                            }
+                            catch(IllegalArgumentException iae){
+                                out.println("invalid restaurant id");
+                            }
                         }
                         else{
-                            throw new IllegalArgumentException();
+                            out.println("invalid input format");
                         }
                     }
                     else if(line.matches("^ADDUSER .*")){
 
                     }
                     else if(line.matches("^ADDRESTAURANT .*")){
-
+                        Matcher m = Pattern.compile("^(?:ADDRESTAURANT )(.*)$").matcher(line);
+                        if (m.find()) {
+                            try {
+                                out.println(ydb.addRestaurant(m.group(0)));
+                            }
+                            catch(JsonParsingException jpe){
+                                out.println("Json string error");
+                            }
+                        }
+                        else{
+                            out.println("invalid input format");
+                        }
                     }
                     else if(line.matches("^ADDREVIEW .*")){
 
