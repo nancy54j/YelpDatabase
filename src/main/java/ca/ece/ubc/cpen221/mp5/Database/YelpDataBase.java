@@ -4,6 +4,9 @@ import ca.ece.ubc.cpen221.mp5.Business.Restaurant;
 import ca.ece.ubc.cpen221.mp5.Review.Review;
 import ca.ece.ubc.cpen221.mp5.User.RestaurantUser;
 
+import javax.json.*;
+import javax.json.stream.JsonParsingException;
+import java.io.StringReader;
 import java.util.*;
 import java.util.function.ToDoubleBiFunction;
 
@@ -14,6 +17,8 @@ public class YelpDataBase implements MP5Db {
     Map<String, Restaurant> restMap;
     Map<String, RestaurantUser> userMap;
     Map<String, Review> revMap;
+    private Object modifydatabase = new Object();
+
 
     //initalize yelpDataBase
     public YelpDataBase(){
@@ -27,13 +32,56 @@ public class YelpDataBase implements MP5Db {
         userMap = pj.getUserMap();
     }
 
+    //i'm not editing anything, so I don't violate concurrency/rep invariants
+    public String getRestaurant(String restID) throws IllegalArgumentException{
+        if(restMap.keySet().contains(restID)){
+            throw new IllegalArgumentException();
+        }
+
+        return restMap.get(restID).toString();
+    }
+
+    public boolean addUser(String restUser)throws JsonParsingException {
+
+    }
+    //double latitude, double longitude, String name, String[] neighbourhood, String full_address,
+    //String city, String state
+    //me
+    //{{\"latitide\": <double>, \"longitude\": <double>, \"name\": \"<name>\", " +
+    //                "\"neighborhood\": [\"<neighborhoods>\", \"<neighborhood>\"], \"full_address\": \"<full_address\"" +
+    //                       ", \"city\": \"<city>\", \"state\": \"<state>\"}
+    public boolean addRestaurant(String rest)throws JsonParsingException, IllegalArgumentException{
+        if(restMap.keySet().contains(rest)){
+            return false;
+        }
+        synchronized(modifydatabase){
+            JsonObject jsonrestaurant = Json.createReader(new StringReader(rest)).readObject();
+
+            //make a neighborhood string[]
+            JsonArray a = jsonrestaurant.getJsonArray("neighborhoods");
+            String[] neighborhood = new String[a.size()];
+            int i = 0;
+            for(JsonValue s : a){
+                neighborhood[i] = s.toString();
+                i++;
+            }
+            double latitude = jsonrestaurant.getJsonNumber("latitude").doubleValue();
+
+            Restaurant r = Restaurant()
+        }
+    }
+
+    public boolean addReview(String rev)throws JsonParsingException{
+
+    }
+
     /**
      * adds a new user to the database. This user must not have been added before
      *
      * @param ru
      * @return whether or not the user was successfully added
      */
-    public synchronized boolean addnewUser(RestaurantUser ru){
+    private boolean addnewUser(RestaurantUser ru){
         if(!userMap.keySet().contains(ru.UserID)){
             userMap.put(ru.UserID, ru);
             users.add(ru);
@@ -47,7 +95,7 @@ public class YelpDataBase implements MP5Db {
      * @param r
      * @return whether the add was successful
      */
-    public synchronized boolean addnewRestaurant(Restaurant r){
+    private boolean addnewRestaurant(Restaurant r){
         if(!restMap.keySet().contains(r.id)){
             restMap.put(r.id, r);
             restaurants.add(r);
@@ -66,7 +114,7 @@ public class YelpDataBase implements MP5Db {
      * @param r
      * @return
      */
-    public synchronized boolean addReview(Review r){
+    private boolean addReview(Review r){
         //if the user and business are in this database, and the review has not been recorded yet
         if(userMap.keySet().contains(r.user) && restMap.keySet().contains(r.business) && !reviews.contains(r.id)){
             //see if the restaurant has been reviewed by this specific user already
@@ -87,16 +135,18 @@ public class YelpDataBase implements MP5Db {
      * @param r
      * @return whether the removal was successful or not
      */
-    public synchronized boolean deleteReview(RestaurantUser ru, Restaurant r){
+    public boolean deleteReview(RestaurantUser ru, Restaurant r){
         //finding the review of a particular user to the particular restaurant
-        for(Review rev : reviews){
-            if(rev.business.equals(r) && rev.user.equals(ru)){
-                userMap.get(rev.user).deleteReview(rev);
-                restMap.get(rev.business).deleteReview(rev);
-                this.reviews.remove(rev);
+        synchronized(userMap){
+            for (Review rev : reviews) {
+                if (rev.business.equals(r) && rev.user.equals(ru)) {
+                    userMap.get(rev.user).deleteReview(rev);
+                    restMap.get(rev.business).deleteReview(rev);
+                    this.reviews.remove(rev);
+                }
             }
+            return false;
         }
-        return false;
     }
 
     /**
@@ -288,59 +338,63 @@ public class YelpDataBase implements MP5Db {
         }
     }
 
-    public double linearRegression(YelpDataBase database,String id, String user){
+    public double linearRegression(YelpDataBase database,String businessID, String userID) {
 
-        RestaurantUser lol = database.userMap.get(id);
-        Set<String> reviewID = lol.getReviews();
+        RestaurantUser user = (RestaurantUser) database.userMap.get(userID);
+        Set<String> reviewID = user.getReviews();
         Set<Review> reviews = new HashSet<>();
+        Set<String> business = new HashSet<>();
+
         //map all review id written by users to their ratings
-        for(String userid : reviewID){
-            reviews.add(database.revMap.get(userid));
+        for (String id : reviewID) {
+            reviews.add(database.revMap.get(id));
         }
 
-        //map all reviews written by users to priceyness
+        //map all review id to their restaurants
+        //map all reviews written by users to price
         LinkedList<Double> price = new LinkedList<>();
         LinkedList<Double> rating = new LinkedList<>();
 
-        for(Review review : reviews){
-            String businessID = review.business;
-            Restaurant restaurant = database.restMap.get(businessID);
+        for (Review review : reviews) {
+            String bID = review.business;
+            Restaurant restaurant = (Restaurant) database.restMap.get(bID);
 
             //map price vs rating
-            price.add((double)restaurant.getPrice());
+            business.add(review.business);
+            price.add((double) restaurant.getPrice());
             rating.add(review.rating);
         }
 
-        //calculate Sxx
-        double sumSxx = price.stream().reduce(0.0, (a, b) -> a+b);
-        double aveSxx = sumSxx/price.size(); //average price
-        double Sxx = price.stream().reduce(0.0, (a, b) -> Math.pow(a-aveSxx,2) + Math.pow(b-aveSxx,2));
+        if (business.contains(businessID)) {
+            try {
+                throw new Exception("business already reviewed!");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } if (!restMap.containsKey(businessID)) {
+            try {
+                throw new Exception("business not found!");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }  if (!userMap.containsKey(userID)) {
+            try {
+                throw new Exception("user not found!");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
-        //calculate Syy
-        double sumSyy = rating.stream().reduce(0.0, (a, b) -> a+b);
-        double aveSyy = sumSyy/rating.size(); //average rating
-        double Syy = rating.stream().reduce(0.0, (a, b) -> Math.pow(a-aveSyy,2) + Math.pow(b-aveSyy,2));
+        SimpleRegression regression = new SimpleRegression();
 
-        //calculate Sxy
-        LinkedList<Double> priceDiff = new LinkedList<>();
-        price.stream().map(x -> priceDiff.add(x-aveSxx));
+        for (int i = 0; i < price.size(); i++) {
+            regression.addData(price.get(i), rating.get(i));
+        }
 
-        LinkedList<Double> ratingDiff = new LinkedList<>();
-        rating.stream().map(y -> ratingDiff.add(y-aveSyy));
+        Restaurant restaurant = restMap.get(businessID);
 
-        LinkedList<Double> SxyList = new LinkedList<>();
-        ratingDiff.stream().flatMap((a1) -> priceDiff.stream()
-                .map((a2) -> SxyList.add(a1*a2)));
+        return regression.predict(restaurant.getPrice());
 
-        double Sxy = SxyList.stream().reduce(0.0, (a,b) -> a+b);
-
-        //b = Sxy / Sxx
-        // a = mean(y) - b * mean(x)
-        // R2 = Sxy2 / (Sxx Syy)
-
-        //store R2?
-
-        return aveSyy - (Sxy/Sxx)*aveSxx;
     }
 
     /**
@@ -354,10 +408,11 @@ public class YelpDataBase implements MP5Db {
      */
     public ToDoubleBiFunction<YelpDataBase, String> getPredictorFunction(String user){
 
-        ToDoubleBiFunction<YelpDataBase, String> predictRating = (x,y)->linearRegression(x,y, user);
+        ToDoubleBiFunction<YelpDataBase, String> predictRating = (x,y)->linearRegression(x,y,user);
 
         return predictRating;
     }
+
 
     public static void main(String[] args){
         YelpDataBase ydb = new YelpDataBase();
@@ -366,6 +421,7 @@ public class YelpDataBase implements MP5Db {
         System.out.println(ydb.getMatches("chinese"));
 
         System.out.println(ydb.users);
+        System.out.println(ydb.userMap.get("_NH7Cpq3qZkByP5xR4gXog").getReviewCount());
 
         ToDoubleBiFunction<YelpDataBase, String> func = ydb.getPredictorFunction("VfqkoiMTtw3_BVk9wAB_YA");
         System.out.println(func.applyAsDouble(ydb, "    _NH7Cpq3qZkByP5xR4gXog"));

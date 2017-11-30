@@ -37,6 +37,10 @@ public class RestaurantUser implements User {
         this.reviewCount = 0;
     }
 
+    public int getReviewCount(){
+        return reviewCount;
+    }
+
     public Set<String> getReviews(){
         return this.reviewID;
     }

@@ -145,9 +145,10 @@ public class ParseJson {
             schools.add(val.toString());
         }
         int price = restaurant.getInt("price");
+        String photo_url = restaurant.getString("photo_url");
 
         return new Restaurant(business_id, name, url, full_address, city, neighborhood, state,
-                latitude, longitude, stars, reviewCount, price, categories, schools);
+                latitude, longitude, stars, reviewCount, price, categories, schools, photo_url);
     }
 
     //returns a map of unique ids to its respective restaurant

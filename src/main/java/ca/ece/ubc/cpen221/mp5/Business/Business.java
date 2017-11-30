@@ -83,7 +83,6 @@ public class Business implements Reviewable {
         return false;
     }
 
-
     @Override
     public boolean equals(Object o){
         if(o instanceof Restaurant){
@@ -91,6 +90,10 @@ public class Business implements Reviewable {
             return r.id.equals(this.id);
         }
         return false;
+    }
+
+    public int getReviewCount(){
+        return reviewCount;
     }
 
 

@@ -1,17 +1,21 @@
 package ca.ece.ubc.cpen221.mp5.Server;
 
 import ca.ece.ubc.cpen221.mp5.*;
+import ca.ece.ubc.cpen221.mp5.Database.YelpDataBase;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class YelpServer {
 
-
     private ServerSocket serversocket;
+    YelpDataBase ydb;
 
     public YelpServer(int ptnumber) throws IOException {
+        ydb = new YelpDataBase();
         serversocket = new ServerSocket(ptnumber);
     }
 
@@ -50,16 +54,22 @@ public class YelpServer {
             String line;
             while((line = br.readLine()) != null){
                 try{
-                    if(line.matches("^GETRESTAURANT.*")){
+                    if(line.matches("^GETRESTAURANT .*")){
+                        Matcher m = Pattern.compile("^(?:GETRESTAURANT) (.*)$").matcher(line);
+                        if(m.find()){
+                            out.println(ydb.getRestaurant(m.group(0)));
+                        }
+                        else{
+                            throw new IllegalArgumentException();
+                        }
+                    }
+                    else if(line.matches("^ADDUSER .*")){
 
                     }
-                    else if(line.matches("^ADDUSER.*")){
+                    else if(line.matches("^ADDRESTAURANT .*")){
 
                     }
-                    else if(line.matches("^ADDRESTAURANT.*")){
-
-                    }
-                    else if(line.matches("^ADDREVIEW.*")){
+                    else if(line.matches("^ADDREVIEW .*")){
 
                     }
                     else throw new IllegalArgumentException();
