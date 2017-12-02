@@ -10,6 +10,8 @@ import java.io.StringReader;
 import java.util.*;
 import java.util.function.ToDoubleBiFunction;
 
+
+
 public class YelpDataBase implements MP5Db {
     Set<Restaurant> restaurants;
     Set<Review> reviews;
@@ -42,7 +44,7 @@ public class YelpDataBase implements MP5Db {
     }
 
     public boolean addUser(String restUser)throws JsonParsingException {
-
+        return false;
     }
 
     public String addRestaurant(String rest)throws JsonParsingException{
@@ -78,7 +80,7 @@ public class YelpDataBase implements MP5Db {
     }
 
     public boolean addReview(String rev)throws JsonParsingException{
-
+        return false;
     }
 
     /**
@@ -120,7 +122,7 @@ public class YelpDataBase implements MP5Db {
      * @param r
      * @return
      */
-    private boolean addReview(Review r){
+    private boolean addnewReview(Review r){
         //if the user and business are in this database, and the review has not been recorded yet
         if(userMap.keySet().contains(r.user) && restMap.keySet().contains(r.business) && !reviews.contains(r.id)){
             //see if the restaurant has been reviewed by this specific user already
@@ -431,8 +433,6 @@ public class YelpDataBase implements MP5Db {
 
         ToDoubleBiFunction<YelpDataBase, String> func = ydb.getPredictorFunction("VfqkoiMTtw3_BVk9wAB_YA");
         System.out.println(func.applyAsDouble(ydb, "    _NH7Cpq3qZkByP5xR4gXog"));
-
-
     }
 
 
