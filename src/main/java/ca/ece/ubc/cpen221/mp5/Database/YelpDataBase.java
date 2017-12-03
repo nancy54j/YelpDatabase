@@ -393,6 +393,7 @@ public class YelpDataBase implements MP5Db {
             }
         }
 
+        /*
         SimpleRegression regression = new SimpleRegression();
 
         for (int i = 0; i < price.size(); i++) {
@@ -402,6 +403,8 @@ public class YelpDataBase implements MP5Db {
         Restaurant restaurant = restMap.get(businessID);
 
         return regression.predict(restaurant.getPrice());
+        */
+        return 0;
 
     }
 
@@ -432,7 +435,7 @@ public class YelpDataBase implements MP5Db {
         System.out.println(ydb.userMap.get("_NH7Cpq3qZkByP5xR4gXog").getReviewCount());
 
         ToDoubleBiFunction<YelpDataBase, String> func = ydb.getPredictorFunction("VfqkoiMTtw3_BVk9wAB_YA");
-        System.out.println(func.applyAsDouble(ydb, "    _NH7Cpq3qZkByP5xR4gXog"));
+        System.out.println(func.applyAsDouble(ydb, "_NH7Cpq3qZkByP5xR4gXog"));
     }
 
 

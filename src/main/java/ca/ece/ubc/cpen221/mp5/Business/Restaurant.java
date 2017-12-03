@@ -47,7 +47,7 @@ public class Restaurant extends Business {
     }
 
     public void addCategory(String category){
-        schools.add(category);
+        categories.add(category);
     }
 
     public Set<String> getCategory(){

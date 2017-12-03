@@ -47,7 +47,7 @@ public class RestaurantUser implements User {
 
 
     @Override
-    public double GetAverageStar() {
+    public double getAverageStar() {
         return aveStar;
     }
 
@@ -104,5 +104,18 @@ public class RestaurantUser implements User {
     @Override
     public int hashCode(){
         return votes[0] + reviewCount;
+    }
+
+    public String getName(){
+        return new String(this.name);
+    }
+
+    public int[] getVotes(){
+        return votes;
+    }
+
+    //need to add review ids to the set without changing the number of reviews/ratings, etc
+    public void addReviewinitialize(String s){
+        this.reviewID.add(s);
     }
 }

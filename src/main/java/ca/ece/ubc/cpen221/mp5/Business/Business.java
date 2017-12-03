@@ -92,8 +92,18 @@ public class Business implements Reviewable {
         return false;
     }
 
+    @Override
+    public int hashCode(){
+        return id.hashCode();
+    }
+
     public int getReviewCount(){
         return reviewCount;
+    }
+
+    //need to add review ids to the set without changing the number of reviews/ratings, etc
+    public void addReviewinitialize(String s){
+        this.reviews.add(s);
     }
 
 

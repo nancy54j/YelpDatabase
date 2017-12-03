@@ -25,21 +25,6 @@ public class Review {
         this.upvotes = Arrays.copyOf(upvotes, 3); //ensures not copy by reference and saves size
     }
 
-    //create new review
-    public Review(double starRating, String user_id, String business_id){
-        gen_id++;
-        this.id = "+NEW+" + gen_id;
-        this.user = user_id;
-        this.business = business_id;
-        this.rating = starRating;
-        this.date = (int) (System.currentTimeMillis() / 1000);
-        this.text = "";
-    }
-
-    String getID(){
-        return id;
-    }
-
     //create a new review with text
     public Review(double starRating, String text, String user_id, String business_id){
         gen_id++;

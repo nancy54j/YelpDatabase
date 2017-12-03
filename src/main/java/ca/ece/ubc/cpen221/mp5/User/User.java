@@ -5,7 +5,7 @@ import ca.ece.ubc.cpen221.mp5.Review.Review;
 public interface User {
 
     //return average star rating of the user
-    public double GetAverageStar();
+    public double getAverageStar();
 
     //get review by id
     public String getReviewByID(String id);

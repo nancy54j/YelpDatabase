@@ -7,6 +7,7 @@ import ca.ece.ubc.cpen221.mp5.User.RestaurantUser;
 import javax.json.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.StringReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -31,6 +32,7 @@ public class ParseJson {
         this.users = new HashSet<>();
         this.restMap = new HashMap<>();
         this.userMap = new HashMap<>();
+        this.reviewMap = new HashMap<>();
 
         try {
             //parse restaurants
@@ -70,25 +72,28 @@ public class ParseJson {
 
                     //add the id of the review to the user it belongs to
                     if(userMap.keySet().contains(r.user)){
-                        userMap.get(r.user).addReview(r);
+                        userMap.get(r.user).addReviewinitialize(r.id);
                         this.reviews.add(r);
                         this.reviewMap.put(r.id, r);
 
                     }
                     if(restMap.keySet().contains(r.business)){
-                        restMap.get(r.business).addReview(r);
+                        restMap.get(r.business).addReviewinitialize(r.id);
                         this.reviews.add(r);
                         this.reviewMap.put(r.id, r);
                     }
                 }
             }
         }
-        catch(Exception e){
-            System.out.println("SOMETHING HAPPENED");
+        catch(IOException e){
+            System.out.println("file problem");
+        }
+        catch(ParseException e){
+            System.out.println("parse problem");
         }
     }
 
-    private Review parseJsonReview (JsonObject review) throws ParseException{
+    public static Review parseJsonReview (JsonObject review) throws ParseException{
         //convert date to unix time
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
         int unixtime = (int) (df.parse(review.getString("date")).getTime() / 1000);
@@ -101,7 +106,7 @@ public class ParseJson {
                 review.getString("business_id"), unixtime, upvotes);
     }
 
-    private RestaurantUser parseJsonRestUser(JsonObject user){
+    public static RestaurantUser parseJsonRestUser(JsonObject user){
         String url = user.getString("url");
         JsonObject vote = user.getJsonObject("votes");
         int[] votes = new int[]{vote.getInt("funny"), vote.getInt("useful"), vote.getInt("cool")};
@@ -113,7 +118,7 @@ public class ParseJson {
         return new RestaurantUser(name, user_id, url, aveStar, votes, reviewCount);
     }
 
-    private Restaurant parseJsonRestaurant(JsonObject restaurant){
+    public static Restaurant parseJsonRestaurant(JsonObject restaurant){
         String url = restaurant.getString("url");
         double longitude = restaurant.getJsonNumber("longitude").doubleValue();
         double latitude = restaurant.getJsonNumber("latitude").doubleValue();
