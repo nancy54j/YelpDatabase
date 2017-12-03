@@ -19,7 +19,7 @@ public class YelpDataBase implements MP5Db {
     Map<String, Restaurant> restMap;
     Map<String, RestaurantUser> userMap;
     Map<String, Review> revMap;
-    private Object modifydatabase = new Object();
+    private Object modifydatabase;
 
 
     //initalize yelpDataBase
@@ -32,9 +32,10 @@ public class YelpDataBase implements MP5Db {
         users = pj.getUsers();
         restMap = pj.getrestMap();
         userMap = pj.getUserMap();
+        modifydatabase = new Object();
     }
 
-    //i'm not editing anything, so I don't violate concurrency/rep invariants
+    //this section is for queries of the server
     public String getRestaurant(String restID) throws IllegalArgumentException{
         if(!restMap.keySet().contains(restID)){
             throw new IllegalArgumentException();
@@ -168,44 +169,47 @@ public class YelpDataBase implements MP5Db {
      */
     public Set<String> getMatches(String queryString){
         Set<String> retSet = new HashSet<>();
+        String[] query = queryString.toLowerCase().split("\\s+");
 
         for(Restaurant r : restaurants){
             //do some light manipulation to the string for better matches
 
-            String[] query = queryString.toLowerCase().split("//s+");
-            String tosearch = ".*";
-            for(String s : query){
-                tosearch += s + ".*";
-            }
+            for(String tosearch : query) {
+                tosearch = ".*" + tosearch + ".*";
 
-            //added is to slightly improve performance
-            boolean added = false;
-            if(r.city.toLowerCase().matches(tosearch) || r.full_address.toLowerCase().matches(tosearch) ||
-                    r.state.toLowerCase().matches(tosearch) || r.name.toLowerCase().matches(tosearch)){
-               retSet.add(r.name);
-            }
-            else {
-                for (String s : r.neighbourhood) {
-                    if (s.toLowerCase().matches(tosearch)) {
-                        added = true;
-                        retSet.add(r.name);
-                        break;
+                //boolean is to slightly improve performance
+                boolean added = false;
+
+                if (r.city.toLowerCase().matches(tosearch) || r.full_address.toLowerCase().matches(tosearch) ||
+                        r.state.toLowerCase().matches(tosearch) || r.name.toLowerCase().matches(tosearch)) {
+                    retSet.add(r.id);
+                    added = true;
+                } else {
+                    for (String s : r.neighbourhood) {
+                        if (s.toLowerCase().matches(tosearch)) {
+                            added = true;
+                            retSet.add(r.id);
+                            break;
+                        }
+                    }
+                    if (added) break;
+                    for (String s : r.getCategory()) {
+                        if (s.toLowerCase().matches(tosearch)) {
+                            added = true;
+                            retSet.add(r.id);
+                            break;
+                        }
+                    }
+                    if (added) break;
+                    for (String s : r.getSchool()) {
+                        if (s.toLowerCase().matches(tosearch)) {
+                            retSet.add(r.id);
+                            break;
+                        }
                     }
                 }
-                if(added) continue;
-                for (String s : r.getCategory()) {
-                    if (s.toLowerCase().matches(tosearch)) {
-                        added = true;
-                        retSet.add(r.name);
-                        break;
-                    }
-                }
-                if(added) continue;
-                for (String s : r.getSchool()) {
-                    if (s.toLowerCase().matches(tosearch)) {
-                        retSet.add(r.name);
-                        break;
-                    }
+                if(added){
+                    break;
                 }
             }
         }
@@ -221,7 +225,7 @@ public class YelpDataBase implements MP5Db {
      * @return
      */
     public String kMeansClusters_json(int k){
-        if(restaurants.size() < k){
+        if(restaurants.size() < k || k < 1){
             throw new IllegalArgumentException("k is too big");
         }
 
@@ -434,8 +438,10 @@ public class YelpDataBase implements MP5Db {
         System.out.println(ydb.users);
         System.out.println(ydb.userMap.get("_NH7Cpq3qZkByP5xR4gXog").getReviewCount());
 
+        /*
         ToDoubleBiFunction<YelpDataBase, String> func = ydb.getPredictorFunction("VfqkoiMTtw3_BVk9wAB_YA");
         System.out.println(func.applyAsDouble(ydb, "_NH7Cpq3qZkByP5xR4gXog"));
+        */
     }
 
 
