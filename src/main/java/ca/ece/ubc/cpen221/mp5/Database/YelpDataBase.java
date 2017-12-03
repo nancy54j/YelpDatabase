@@ -400,11 +400,7 @@ public class YelpDataBase implements MP5Db {
         }
 
         if(price.size() < 2){
-            try {
-                throw new Exception("not enough data points");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            throw new IllegalArgumentException("not enough data points");
         }
 
         if (business.contains(businessID)) {
@@ -413,19 +409,10 @@ public class YelpDataBase implements MP5Db {
         }
 
         if (!restMap.containsKey(businessID)) {
-            try {
-                throw new Exception("business not found!");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
+            throw new IllegalArgumentException("business not found!");
         }
         if (!userMap.containsKey(userID)) {
-            try {
-                throw new Exception("user not found!");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            throw new IllegalArgumentException("user not found!");
         }
 
         SimpleRegression regression = new SimpleRegression();

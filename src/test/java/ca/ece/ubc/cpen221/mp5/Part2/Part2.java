@@ -3,7 +3,6 @@ import ca.ece.ubc.cpen221.mp5.Database.YelpDataBase;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.junit.Before;
-import org.junit.Test;
 
 import java.util.Set;
 import java.util.function.ToDoubleBiFunction;
@@ -47,7 +46,7 @@ public class Part2 {
 
     @Test(timeout = 40000)
     public void kmeans1(){
-        System.out.println(ydb.kMeansClusters_json(3));
+        System.out.println(ydb.kMeansClusters_json(25));
     }
 
     @Test
@@ -73,18 +72,26 @@ public class Part2 {
         assertEquals(4.0, func.applyAsDouble(ydb, "TUIDRJ_rUkdmYPSRAAEsPg"),0.1);
     }
 
-    @Test (expected = Exception.class)
+    @Test
     public void getPrediction2(){
-        ToDoubleBiFunction<YelpDataBase, String> func = ydb.getPredictorFunction("Djk49JjpKl9HQNpmiX669Q");
-
-        func.applyAsDouble(ydb, "unknown business");
+        try {
+            ToDoubleBiFunction<YelpDataBase, String> func = ydb.getPredictorFunction("Djk49JjpKl9HQNpmiX669Q");
+            func.applyAsDouble(ydb, "unknown business");
+            fail("Should've thrown exception");
+        }
+        catch(Exception e){}
     }
 
-    @Test (expected = Exception.class)
+    @Test
     public void getPrediction3(){
-        ToDoubleBiFunction<YelpDataBase, String> func = ydb.getPredictorFunction("unknown user");
+        try {
+            ToDoubleBiFunction<YelpDataBase, String> func = ydb.getPredictorFunction("unknown user");
 
-        func.applyAsDouble(ydb, "TUIDRJ_rUkdmYPSRAAEsPg");
+            func.applyAsDouble(ydb, "TUIDRJ_rUkdmYPSRAAEsPg");
+
+            fail("should've thrown Exception");
+        }
+        catch(Exception e){}
     }
 
     @Test
@@ -94,11 +101,15 @@ public class Part2 {
         assertEquals(5.0, func.applyAsDouble(ydb,"TUIDRJ_rUkdmYPSRAAEsPg"), 0.1);
     }
 
-    @Test (expected = Exception.class)
+    @Test
     public void getPrediction5(){
-        ToDoubleBiFunction<YelpDataBase, String> func = ydb.getPredictorFunction("kliaIrCOEk9RZo7kI25xXg");
+        try {
+            ToDoubleBiFunction<YelpDataBase, String> func = ydb.getPredictorFunction("kliaIrCOEk9RZo7kI25xXg");
 
-        System.out.println(func.applyAsDouble(ydb, "TUIDRJ_rUkdmYPSRAAEsPg"));
+            System.out.println(func.applyAsDouble(ydb, "TUIDRJ_rUkdmYPSRAAEsPg"));
+
+        }
+        catch(Exception e){}
     }
 
     @Test
