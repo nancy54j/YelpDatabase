@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="CompilerConfiguration">
-    <bytecodeTargetLevel>
-      <module name="f17-mp5-nancy54j_ilikerice123_main" target="1.8" />
-      <module name="f17-mp5-nancy54j_ilikerice123_test" target="1.8" />
-    </bytecodeTargetLevel>
-  </component>
-</project>
