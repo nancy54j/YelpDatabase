@@ -3,6 +3,7 @@ package ca.ece.ubc.cpen221.mp5.Database;
 import ca.ece.ubc.cpen221.mp5.Business.Restaurant;
 import ca.ece.ubc.cpen221.mp5.Review.Review;
 import ca.ece.ubc.cpen221.mp5.User.RestaurantUser;
+import org.apache.commons.math3.stat.regression.SimpleRegression;
 
 import javax.json.*;
 import javax.json.stream.JsonParsingException;
@@ -397,7 +398,7 @@ public class YelpDataBase implements MP5Db {
             }
         }
 
-        /*
+
         SimpleRegression regression = new SimpleRegression();
 
         for (int i = 0; i < price.size(); i++) {
@@ -407,9 +408,6 @@ public class YelpDataBase implements MP5Db {
         Restaurant restaurant = restMap.get(businessID);
 
         return regression.predict(restaurant.getPrice());
-        */
-        return 0;
-
     }
 
     /**
