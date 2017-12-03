@@ -166,6 +166,11 @@ public class ParseJson {
         return userMap;
     }
 
+    //returns a map of unique ids to its respective reviews
+    public Map<String, Review> getReviewMap(){
+        return reviewMap;
+    }
+
     public Set<Restaurant> getRestaurants(){
         return restaurants;
     }

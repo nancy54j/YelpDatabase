@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Set;
+import java.util.function.ToDoubleBiFunction;
 
 public class Part2 {
     YelpDataBase ydb;
@@ -64,4 +65,54 @@ public class Part2 {
         catch(Exception e) {
         }
     }
+
+    @Test
+    public void getPrediction1(){
+        ToDoubleBiFunction<YelpDataBase, String> func = ydb.getPredictorFunction("Djk49JjpKl9HQNpmiX669Q");
+
+        assertEquals(4.0, func.applyAsDouble(ydb, "TUIDRJ_rUkdmYPSRAAEsPg"),0.1);
+    }
+
+    @Test (expected = Exception.class)
+    public void getPrediction2(){
+        ToDoubleBiFunction<YelpDataBase, String> func = ydb.getPredictorFunction("Djk49JjpKl9HQNpmiX669Q");
+
+        func.applyAsDouble(ydb, "unknown business");
+    }
+
+    @Test (expected = Exception.class)
+    public void getPrediction3(){
+        ToDoubleBiFunction<YelpDataBase, String> func = ydb.getPredictorFunction("unknown user");
+
+        func.applyAsDouble(ydb, "TUIDRJ_rUkdmYPSRAAEsPg");
+    }
+
+    @Test
+    public void getPrediction4(){
+        ToDoubleBiFunction<YelpDataBase, String> func = ydb.getPredictorFunction("3Pxvvsub2mYh-t4Y3bdcRw");
+
+        assertEquals(5.0, func.applyAsDouble(ydb,"TUIDRJ_rUkdmYPSRAAEsPg"), 0.1);
+    }
+
+    @Test (expected = Exception.class)
+    public void getPrediction5(){
+        ToDoubleBiFunction<YelpDataBase, String> func = ydb.getPredictorFunction("kliaIrCOEk9RZo7kI25xXg");
+
+        System.out.println(func.applyAsDouble(ydb, "TUIDRJ_rUkdmYPSRAAEsPg"));
+    }
+
+    @Test
+    public void getPrediction6(){
+        ToDoubleBiFunction<YelpDataBase, String> func = ydb.getPredictorFunction("Gcjr__StoE_lpZjDGc31Ew");
+
+        assertEquals(2.6, func.applyAsDouble(ydb, "TUIDRJ_rUkdmYPSRAAEsPg"), 0.1);
+    }
+
+    @Test
+    public void getPrediction7(){
+        ToDoubleBiFunction<YelpDataBase, String> func = ydb.getPredictorFunction("Vw7Zi0EXqHmhru78zyFxaQ");
+
+        assertEquals(3.5, func.applyAsDouble(ydb,"TUIDRJ_rUkdmYPSRAAEsPg"), 0.1);
+    }
+
 }

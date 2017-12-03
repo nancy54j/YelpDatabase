@@ -33,6 +33,7 @@ public class YelpDataBase implements MP5Db {
         users = pj.getUsers();
         restMap = pj.getrestMap();
         userMap = pj.getUserMap();
+        revMap = pj.getReviewMap();
         modifydatabase = new Object();
     }
 
@@ -81,9 +82,29 @@ public class YelpDataBase implements MP5Db {
         }
     }
 
+
     public boolean addReview(String rev)throws JsonParsingException{
-        return false;
-    }
+
+        synchronized(modifydatabase){
+            JsonObject review = Json.createReader(new StringReader(rev)).readObject();
+            double starRating = review.getJsonNumber("stars").doubleValue();
+            if (starRating > 5 || starRating < 1) {
+                throw new IllegalArgumentException("Star rating can not be greater than 5!");
+            }
+
+            String user_id = review.getString("user_id");
+            String business_id = review.getString("business_id");
+
+            String text = review.getString("text");
+
+            Review r = new Review(starRating, text, user_id, business_id);
+            if(revMap.containsKey(r.id)){
+                revMap.remove(r.id);
+            }
+            this.revMap.put(r.id,r);
+            this.reviews.add(r);
+            return true;
+        }}
 
     /**
      * adds a new user to the database. This user must not have been added before
@@ -378,19 +399,28 @@ public class YelpDataBase implements MP5Db {
             rating.add(review.rating);
         }
 
-        if (business.contains(businessID)) {
+        if(price.size() < 2){
             try {
-                throw new Exception("business already reviewed!");
+                throw new Exception("not enough data points");
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        } if (!restMap.containsKey(businessID)) {
+        }
+
+        if (business.contains(businessID)) {
+             System.out.println("Business already reviewed by user!");
+             return restMap.get(businessID).getRating();
+        }
+
+        if (!restMap.containsKey(businessID)) {
             try {
                 throw new Exception("business not found!");
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }  if (!userMap.containsKey(userID)) {
+
+        }
+        if (!userMap.containsKey(userID)) {
             try {
                 throw new Exception("user not found!");
             } catch (Exception e) {
@@ -398,16 +428,25 @@ public class YelpDataBase implements MP5Db {
             }
         }
 
-
         SimpleRegression regression = new SimpleRegression();
+
 
         for (int i = 0; i < price.size(); i++) {
             regression.addData(price.get(i), rating.get(i));
         }
 
+
         Restaurant restaurant = restMap.get(businessID);
 
-        return regression.predict(restaurant.getPrice());
+        double predict = regression.predict(restaurant.getPrice());
+        if(predict < 1 ){
+            predict = 1;
+        }
+        if (predict > 5){
+            predict = 5;
+        }
+
+        return predict;
     }
 
     /**
