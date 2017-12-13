@@ -1,5 +1,7 @@
 // Generated from Request.g4 by ANTLR 4.7.1
 
+
+
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -147,13 +149,13 @@ public class RequestBaseListener implements RequestListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterText(RequestParser.TextContext ctx) { }
+	@Override public void enterPhrase(RequestParser.PhraseContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitText(RequestParser.TextContext ctx) { }
+	@Override public void exitPhrase(RequestParser.PhraseContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

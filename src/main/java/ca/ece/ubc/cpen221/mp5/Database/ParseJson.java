@@ -11,10 +11,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ParseJson {
     Set<Restaurant> restaurants;
@@ -154,6 +151,44 @@ public class ParseJson {
 
         return new Restaurant(business_id, name, url, full_address, city, neighborhood, state,
                 latitude, longitude, stars, reviewCount, price, categories, schools, photo_url);
+    }
+
+    public static String restToJson(Restaurant r){
+        JsonBuilderFactory f = Json.createBuilderFactory(null);
+        JsonArrayBuilder neighbourhoodarray = f.createArrayBuilder();
+        for(String s : r.neighbourhood) {
+            neighbourhoodarray.add(s);
+        }
+        JsonArray nArray = neighbourhoodarray.build();
+        JsonArrayBuilder categoryarray = f.createArrayBuilder();
+        for(String s : r.getCategory()) {
+            categoryarray.add(s);
+        }
+        JsonArray cArray = categoryarray.build();
+        JsonArrayBuilder schoolarray = f.createArrayBuilder();
+        for(String s : r.getSchool()) {
+            schoolarray.add(s);
+        }
+        JsonArray sArray = schoolarray.build();
+        JsonObject restaurant = f.createObjectBuilder().add("open", "true").add("url", r.url)
+                .add("longitude", r.getLocation()[1]).add("neighborhoods", nArray)
+                .add("business_id", r.id).add("name", r.name).add("categories", cArray)
+                .add("state", r.state).add("type", "business").add("stars", r.getRating())
+                .add("city", r.city).add("full_address", r.full_address).add("review_count", r.getReviewCount())
+                .add("photo_url", r.getPhotoUrl()).add("schools", sArray).add("latitude", r.getLocation()[0])
+                .add("price", r.getPrice()).build();
+
+        return restaurant.toString();
+    }
+
+    public static <T> String arrayToJson(Collection<T> c){
+        JsonBuilderFactory f = Json.createBuilderFactory(null);
+        JsonArrayBuilder retArray = f.createArrayBuilder();
+        for(T s : c){
+            retArray.add(s.toString());
+        }
+
+        return retArray.toString();
     }
 
     //returns a map of unique ids to its respective restaurant

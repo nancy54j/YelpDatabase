@@ -42,7 +42,7 @@ public class RestaurantUser implements User {
     }
 
     public Set<String> getReviews(){
-        return this.reviewID;
+        return new HashSet<>(this.reviewID);
     }
 
 

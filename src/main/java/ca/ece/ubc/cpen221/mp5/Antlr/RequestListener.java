@@ -1,4 +1,6 @@
 // Generated from Request.g4 by ANTLR 4.7.1
+
+
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
@@ -117,13 +119,13 @@ public interface RequestListener extends ParseTreeListener {
 	 */
 	void exitLine(RequestParser.LineContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link RequestParser#text}.
+	 * Enter a parse tree produced by {@link RequestParser#phrase}.
 	 * @param ctx the parse tree
 	 */
-	void enterText(RequestParser.TextContext ctx);
+	void enterPhrase(RequestParser.PhraseContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link RequestParser#text}.
+	 * Exit a parse tree produced by {@link RequestParser#phrase}.
 	 * @param ctx the parse tree
 	 */
-	void exitText(RequestParser.TextContext ctx);
+	void exitPhrase(RequestParser.PhraseContext ctx);
 }

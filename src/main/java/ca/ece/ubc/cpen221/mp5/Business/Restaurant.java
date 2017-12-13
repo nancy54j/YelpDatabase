@@ -1,6 +1,7 @@
 package ca.ece.ubc.cpen221.mp5.Business;
 
 import ca.ece.ubc.cpen221.mp5.Business.Business;
+import ca.ece.ubc.cpen221.mp5.Database.ParseJson;
 
 import javax.json.*;
 import java.util.*;
@@ -68,31 +69,7 @@ public class Restaurant extends Business {
 
     @Override
     public String toString(){
-        JsonBuilderFactory f = Json.createBuilderFactory(null);
-        JsonArrayBuilder neighbourhoodarray = f.createArrayBuilder();
-        for(String s : neighbourhood) {
-            neighbourhoodarray.add(s);
-        }
-        JsonArray nArray = neighbourhoodarray.build();
-        JsonArrayBuilder categoryarray = f.createArrayBuilder();
-        for(String s : categories) {
-            categoryarray.add(s);
-        }
-        JsonArray cArray = categoryarray.build();
-        JsonArrayBuilder schoolarray = f.createArrayBuilder();
-        for(String s : schools) {
-            schoolarray.add(s);
-        }
-        JsonArray sArray = schoolarray.build();
-        JsonObject restaurant = f.createObjectBuilder().add("open", "true").add("url", url)
-                .add("longitude", super.getLocation()[1]).add("neighborhoods", nArray)
-                .add("business_id", id).add("name", name).add("categories", cArray)
-                .add("state", state).add("type", "business").add("stars", super.getRating())
-                .add("city", city).add("full_address", full_address).add("review_count", super.getReviewCount())
-                .add("photo_url", photo_url).add("schools", sArray).add("latitude", super.getLocation()[0])
-                .add("price", price).build();
-
-        return restaurant.toString();
+        return ParseJson.restToJson(this);
     }
 
 }

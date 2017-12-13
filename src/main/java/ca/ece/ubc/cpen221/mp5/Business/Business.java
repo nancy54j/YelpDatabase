@@ -71,7 +71,7 @@ public class Business implements Reviewable {
     }
 
     public Set<String> getReviews(){
-        return reviews;
+        return new HashSet<>(reviews);
     }
 
     public boolean deleteReview(Review r){

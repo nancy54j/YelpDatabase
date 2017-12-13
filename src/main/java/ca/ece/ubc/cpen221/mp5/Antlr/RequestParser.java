@@ -1,4 +1,6 @@
 // Generated from Request.g4 by ANTLR 4.7.1
+
+
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
@@ -22,10 +24,10 @@ public class RequestParser extends Parser {
 	public static final int
 		RULE_req = 0, RULE_andExpr = 1, RULE_atom = 2, RULE_orExpr = 3, RULE_in = 4, 
 		RULE_category = 5, RULE_name = 6, RULE_rating = 7, RULE_price = 8, RULE_ineq = 9, 
-		RULE_line = 10, RULE_text = 11;
+		RULE_line = 10, RULE_phrase = 11;
 	public static final String[] ruleNames = {
 		"req", "andExpr", "atom", "orExpr", "in", "category", "name", "rating", 
-		"price", "ineq", "line", "text"
+		"price", "ineq", "line", "phrase"
 	};
 
 	private static final String[] _LITERAL_NAMES = {
@@ -643,11 +645,11 @@ public class RequestParser extends Parser {
 	}
 
 	public static class LineContext extends ParserRuleContext {
-		public List<TextContext> text() {
-			return getRuleContexts(TextContext.class);
+		public List<PhraseContext> phrase() {
+			return getRuleContexts(PhraseContext.class);
 		}
-		public TextContext text(int i) {
-			return getRuleContext(TextContext.class,i);
+		public PhraseContext phrase(int i) {
+			return getRuleContext(PhraseContext.class,i);
 		}
 		public LineContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -677,7 +679,7 @@ public class RequestParser extends Parser {
 				{
 				{
 				setState(79);
-				text();
+				phrase();
 				}
 				}
 				setState(84);
@@ -697,26 +699,26 @@ public class RequestParser extends Parser {
 		return _localctx;
 	}
 
-	public static class TextContext extends ParserRuleContext {
+	public static class PhraseContext extends ParserRuleContext {
 		public TerminalNode ANYTOKEN() { return getToken(RequestParser.ANYTOKEN, 0); }
 		public TerminalNode WORD() { return getToken(RequestParser.WORD, 0); }
-		public TextContext(ParserRuleContext parent, int invokingState) {
+		public PhraseContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_text; }
+		@Override public int getRuleIndex() { return RULE_phrase; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof RequestListener ) ((RequestListener)listener).enterText(this);
+			if ( listener instanceof RequestListener ) ((RequestListener)listener).enterPhrase(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof RequestListener ) ((RequestListener)listener).exitText(this);
+			if ( listener instanceof RequestListener ) ((RequestListener)listener).exitPhrase(this);
 		}
 	}
 
-	public final TextContext text() throws RecognitionException {
-		TextContext _localctx = new TextContext(_ctx, getState());
-		enterRule(_localctx, 22, RULE_text);
+	public final PhraseContext phrase() throws RecognitionException {
+		PhraseContext _localctx = new PhraseContext(_ctx, getState());
+		enterRule(_localctx, 22, RULE_phrase);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);

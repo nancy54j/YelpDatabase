@@ -14,9 +14,6 @@ import java.util.function.ToDoubleBiFunction;
 
 
 public class YelpDataBase implements MP5Db {
-    Set<Restaurant> restaurants;
-    Set<Review> reviews;
-    Set<RestaurantUser> users;
     Map<String, Restaurant> restMap;
     Map<String, RestaurantUser> userMap;
     Map<String, Review> revMap;
@@ -28,9 +25,6 @@ public class YelpDataBase implements MP5Db {
         ParseJson pj = new ParseJson("./data/users.json", "./data/restaurants.json",
                 "./data/reviews.json");
 
-        restaurants = pj.getRestaurants();
-        reviews = pj.getReviews();
-        users = pj.getUsers();
         restMap = pj.getrestMap();
         userMap = pj.getUserMap();
         revMap = pj.getReviewMap();
@@ -38,6 +32,7 @@ public class YelpDataBase implements MP5Db {
     }
 
     //this section is for queries of the server
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     public String getRestaurant(String restID) throws IllegalArgumentException{
         if(!restMap.keySet().contains(restID)){
             throw new IllegalArgumentException();
@@ -51,63 +46,53 @@ public class YelpDataBase implements MP5Db {
     }
 
     public String addRestaurant(String rest)throws JsonParsingException{
-        if(restMap.keySet().contains(rest)){
-            return "Something went wrong. Add unsuccessful";
+        JsonObject jsonrestaurant = Json.createReader(new StringReader(rest)).readObject();
+
+        //make a neighborhood string[]
+        JsonArray a = jsonrestaurant.getJsonArray("neighborhoods");
+        String[] neighborhood = new String[a.size()];
+        int i = 0;
+        for(JsonValue s : a){
+            neighborhood[i] = s.toString();
+            i++;
         }
-        synchronized(modifydatabase){
-            JsonObject jsonrestaurant = Json.createReader(new StringReader(rest)).readObject();
+        Restaurant r = new Restaurant(jsonrestaurant.getJsonNumber("latitude").doubleValue(),
+                jsonrestaurant.getJsonNumber("longitude").doubleValue(),
+                jsonrestaurant.getString("name"), neighborhood,
+                jsonrestaurant.getString("full_address"), jsonrestaurant.getString("city"),
+                jsonrestaurant.getString("state"));
 
-            //make a neighborhood string[]
-            JsonArray a = jsonrestaurant.getJsonArray("neighborhoods");
-            String[] neighborhood = new String[a.size()];
-            int i = 0;
-            for(JsonValue s : a){
-                neighborhood[i] = s.toString();
-                i++;
-            }
-
-            Restaurant r = new Restaurant(jsonrestaurant.getJsonNumber("latitude").doubleValue(),
-                    jsonrestaurant.getJsonNumber("longitude").doubleValue(),
-                    jsonrestaurant.getString("name"), neighborhood,
-                    jsonrestaurant.getString("full_address"), jsonrestaurant.getString("city"),
-                    jsonrestaurant.getString("state"));
-
-            if(addnewRestaurant(r)){
-                return "Add success:" + r.toString();
-            }
-            else{
-                return "Something went wrong internally. Add unsuccessful";
-            }
-
+        if(addnewRestaurant(r)){
+            return "Add success:" + r.toString();
+        }
+        else{
+            return "Something went wrong internally. Add unsuccessful";
         }
     }
 
-
     public boolean addReview(String rev)throws JsonParsingException{
+        JsonObject review = Json.createReader(new StringReader(rev)).readObject();
+        double starRating = review.getJsonNumber("stars").doubleValue();
+        if (starRating > 5 || starRating < 1) {
+            throw new IllegalArgumentException("Star rating can not be greater than 5!");
+        }
 
-        synchronized(modifydatabase){
-            JsonObject review = Json.createReader(new StringReader(rev)).readObject();
-            double starRating = review.getJsonNumber("stars").doubleValue();
-            if (starRating > 5 || starRating < 1) {
-                throw new IllegalArgumentException("Star rating can not be greater than 5!");
-            }
+        String user_id = review.getString("user_id");
+        String business_id = review.getString("business_id");
+        String text = review.getString("text");
 
-            String user_id = review.getString("user_id");
-            String business_id = review.getString("business_id");
-
-            String text = review.getString("text");
-
-            Review r = new Review(starRating, text, user_id, business_id);
-            if(revMap.containsKey(r.id)){
-                revMap.remove(r.id);
-            }
-            this.revMap.put(r.id,r);
-            this.reviews.add(r);
-            return true;
-        }}
+        Review r = new Review(starRating, text, user_id, business_id);
+        if(revMap.containsKey(r.id)){
+            revMap.remove(r.id);
+        }
+        this.revMap.put(r.id,r);
+        return true;
+    }
 
     /**
      * adds a new user to the database. This user must not have been added before
+     *
+     * This method is used by addUser, which is used by the server
      *
      * @param ru
      * @return whether or not the user was successfully added
@@ -115,70 +100,84 @@ public class YelpDataBase implements MP5Db {
     private boolean addnewUser(RestaurantUser ru){
         if(!userMap.keySet().contains(ru.UserID)){
             userMap.put(ru.UserID, ru);
-            users.add(ru);
             return true;
         }
         return false;
     }
 
     /**
-     * adds a new restaurant to the databse. This restaurant must not have existed in this database before
+     * adds a new restaurant to the database. This restaurant must not have existed in this database before
+     *
+     * This method is used by addRestaurant, which is called by the server that processes requests
      * @param r
      * @return whether the add was successful
      */
     private boolean addnewRestaurant(Restaurant r){
-        if(!restMap.keySet().contains(r.id)){
-            restMap.put(r.id, r);
-            restaurants.add(r);
-            return true;
+        synchronized(modifydatabase) {
+            if (!restMap.keySet().contains(r.id)) {
+                restMap.put(r.id, r);
+                return true;
+            }
+            return false;
         }
-        return false;
     }
 
     /**
      * adds a new review to the database. It will check if the business and restaurant corresponding to the
-     * review are within this database, and then it will check if the user has previously reviewed this restaurant
-     * before.
+     * review are within this database, and then will check if there already exists a review between
+     * the user and a restaurant. If there is, it will delete that review and add the new review
      *
-     * If the parameters pass, then it will be added to the database
+     * This method is used by addReview, which is then called from the server that processes requests
      *
-     * @param r
+     * @param r review
      * @return
      */
     private boolean addnewReview(Review r){
-        //if the user and business are in this database, and the review has not been recorded yet
-        if(userMap.keySet().contains(r.user) && restMap.keySet().contains(r.business) && !reviews.contains(r.id)){
-            //see if the restaurant has been reviewed by this specific user already
-            if(!userMap.get(r.user).getReviews().contains(r.business)){
-                userMap.get(r.user).addReview(r);
-                restMap.get(r.business).addReview(r);
-                reviews.add(r);
-            }
+        Restaurant rrev = restMap.get(r.business);
+        RestaurantUser urev = userMap.get(r.business);
+        //if user/business are not in this database, or if this review has been recorded already
+        if(rrev == null || urev == null || revMap.keySet().contains(r.id)){
             return false;
         }
-        return false;
+
+        synchronized(modifydatabase){
+            Set<String> intersect = rrev.getReviews();
+            intersect.retainAll(urev.getReviews());
+            if(!intersect.isEmpty()){
+                deleteReview(urev, rrev);
+            }
+            rrev.addReview(r);
+            urev.addReview(r);
+            revMap.put(r.id, r);
+        }
+        return true;
     }
 
     /**
-     * removes a given review from the database. It takes in the restaurant and the user, and checks if there is a
-     * review that links the two. If so, it will remove all instances of that review
+     * removes a given review from the database. It takes in the restaurant and the user
+     * and checks if there is a review that links the two. If so, it will remove all instances of
+     * that review
+     *
+     * This method is only used by addNewReview, and therefore is private and therefore addNewReview will
+     * take care of threading issues
+     *
      * @param ru
      * @param r
      * @return whether the removal was successful or not
      */
-    public boolean deleteReview(RestaurantUser ru, Restaurant r){
+    private boolean deleteReview(RestaurantUser ru, Restaurant r){
         //finding the review of a particular user to the particular restaurant
-        synchronized(userMap){
-            for (Review rev : reviews) {
-                if (rev.business.equals(r) && rev.user.equals(ru)) {
-                    userMap.get(rev.user).deleteReview(rev);
-                    restMap.get(rev.business).deleteReview(rev);
-                    this.reviews.remove(rev);
-                }
+        for (String srev : revMap.keySet()) {
+            Review rev = revMap.get(srev);
+            if (rev.business.equals(r) && rev.user.equals(ru)) {
+                userMap.get(rev.user).deleteReview(rev);
+                restMap.get(rev.business).deleteReview(rev);
+                revMap.remove(rev.id);
             }
-            return false;
         }
+        return false;
     }
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     /**
      * returns a set of ids that represents the ID of a restaurant, such that some field within the restaurant
@@ -193,7 +192,8 @@ public class YelpDataBase implements MP5Db {
         Set<String> retSet = new HashSet<>();
         String[] query = queryString.toLowerCase().split("\\s+");
 
-        for(Restaurant r : restaurants){
+        for(String rid : restMap.keySet()){
+            Restaurant r = restMap.get(rid);
             //do some light manipulation to the string for better matches
 
             for(String tosearch : query) {
@@ -247,7 +247,7 @@ public class YelpDataBase implements MP5Db {
      * @return
      */
     public String kMeansClusters_json(int k){
-        if(restaurants.size() < k || k < 1){
+        if(restMap.size() < k || k < 1){
             throw new IllegalArgumentException("k is too big");
         }
 
@@ -255,12 +255,12 @@ public class YelpDataBase implements MP5Db {
         Map<String, double[]> memberlocation = new HashMap<>();
 
         //Split the restaurant set into k equal sets
-        Iterator it = restaurants.iterator();
-        int amount = restaurants.size() / k + 1;
+        Iterator it = restMap.keySet().iterator();
+        int amount = restMap.size() / k + 1;
         for(int i = 0; i < k; i++){
             nodes.add(new Node(i));
             for(int ii = 0; ii < amount && it.hasNext(); ii++){
-                Restaurant r = (Restaurant) it.next();
+                Restaurant r = restMap.get(it.next());
                 memberlocation.put(r.id, r.getLocation());
                 nodes.get(i).addmember(r.id, r.getLocation());
             }
@@ -457,10 +457,13 @@ public class YelpDataBase implements MP5Db {
         YelpDataBase ydb = new YelpDataBase();
         System.out.println(ydb.getMatches("coffee"));
         System.out.println(ydb.kMeansClusters_json(6));
+
+        /*
         System.out.println(ydb.getMatches("chinese"));
 
         System.out.println(ydb.users);
         System.out.println(ydb.userMap.get("_NH7Cpq3qZkByP5xR4gXog").getReviewCount());
+        */
 
         /*
         ToDoubleBiFunction<YelpDataBase, String> func = ydb.getPredictorFunction("VfqkoiMTtw3_BVk9wAB_YA");
@@ -468,7 +471,157 @@ public class YelpDataBase implements MP5Db {
         */
     }
 
+    //there's a lot of useless code at the start, but I don't know what to do with it
+    public Set<String> category(String s){
+        Set<String> retSet = new HashSet<>();
+        String tofind = ".*" + s + ".*";
+        for(String srest : restMap.keySet()){
+            Restaurant r = restMap.get(srest);
+            for(String category : r.getCategory()){
+                if(category.matches(s)){
+                    retSet.add(r.id);
+                    break;
+                }
+            }
+        }
+        return retSet;
+    }
 
+    public Set<String> in(String s){
+        Set<String> retSet = new HashSet<>();
+        String tofind = ".*" + s + ".*";
+        for(String srest : restMap.keySet()){
+            Restaurant r = restMap.get(srest);
+            //full_address should take into account state and city
+            if(r.full_address.matches(tofind)){
+                retSet.add(r.id);
+                continue;
+            }
+            for(String location : r.neighbourhood){
+                if(location.matches(tofind)){
+                    retSet.add(r.id);
+                    break;
+                }
+            }
+        }
+        return retSet;
+    }
+
+    public Set<String> name(String s){
+        Set<String> retSet = new HashSet<>();
+        String tofind = ".*" + s + ".*";
+        for(String srest : restMap.keySet()){
+            Restaurant r = restMap.get(srest);
+            if(r.name.matches(tofind)){
+                retSet.add(r.id);
+            }
+        }
+        return retSet;
+    }
+
+    public Set<String> price(int num, String s) throws IllegalArgumentException{
+        Set<String> retSet = new HashSet<>();
+        if(num > 5 || num < 0){
+            throw new IllegalArgumentException();
+        }
+        switch(s){
+            case ">":
+                for(String srest : restMap.keySet()) {
+                    Restaurant r = restMap.get(srest);
+                    if (r.getPrice() > num) {
+                        retSet.add(r.id);
+                    }
+                }
+                break;
+            case "<":
+                for(String srest : restMap.keySet()) {
+                    Restaurant r = restMap.get(srest);
+                    if (r.getPrice() < num) {
+                        retSet.add(r.id);
+                    }
+                }
+                break;
+            case "<=":
+                for(String srest : restMap.keySet()) {
+                    Restaurant r = restMap.get(srest);
+                    if (r.getPrice() <= num) {
+                        retSet.add(r.id);
+                    }
+                }
+                break;
+            case ">=":
+                for(String srest : restMap.keySet()) {
+                    Restaurant r = restMap.get(srest);
+                    if (r.getPrice() >= num) {
+                        retSet.add(r.id);
+                    }
+                }
+                break;
+            case "=":
+                for(String srest : restMap.keySet()) {
+                    Restaurant r = restMap.get(srest);
+                    if (r.getPrice() == num) {
+                        retSet.add(r.id);
+                    }
+                }
+                break;
+            default: throw new IllegalArgumentException();
+        }
+
+        return retSet;
+    }
+
+    public Set<String> rating(String s, int num) throws IllegalArgumentException{
+        Set<String> retSet = new HashSet<>();
+        if(num > 5 || num < 0){
+            throw new IllegalArgumentException();
+        }
+        switch(s){
+            case ">":
+                for(String srest : restMap.keySet()) {
+                    Restaurant r = restMap.get(srest);
+                    if (r.getRating() > num) {
+                        retSet.add(r.id);
+                    }
+                }
+                break;
+            case "<":
+                for(String srest : restMap.keySet()) {
+                    Restaurant r = restMap.get(srest);
+                    if (r.getRating() < num) {
+                        retSet.add(r.id);
+                    }
+                }
+                break;
+            case "<=":
+                for(String srest : restMap.keySet()) {
+                    Restaurant r = restMap.get(srest);
+                    if (r.getRating() <= num) {
+                        retSet.add(r.id);
+                    }
+                }
+                break;
+            case ">=":
+                for(String srest : restMap.keySet()) {
+                    Restaurant r = restMap.get(srest);
+                    if (r.getRating() >= num) {
+                        retSet.add(r.id);
+                    }
+                }
+                break;
+            case "=":
+                for(String srest : restMap.keySet()) {
+                    Restaurant r = restMap.get(srest);
+                    if (r.getRating() == num) {
+                        retSet.add(r.id);
+                    }
+                }
+                break;
+            default: throw new IllegalArgumentException();
+        }
+
+        return retSet;
+    }
 
 
 }
