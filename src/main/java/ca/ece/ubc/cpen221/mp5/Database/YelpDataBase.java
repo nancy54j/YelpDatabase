@@ -471,14 +471,14 @@ public class YelpDataBase implements MP5Db {
         */
     }
 
+    //String s is regex
     //there's a lot of useless code at the start, but I don't know what to do with it
-    public Set<String> category(String s){
+    public Set<String> categoryAtom(String regex){
         Set<String> retSet = new HashSet<>();
-        String tofind = ".*" + s + ".*";
         for(String srest : restMap.keySet()){
             Restaurant r = restMap.get(srest);
             for(String category : r.getCategory()){
-                if(category.matches(s)){
+                if(category.matches(regex)){
                     retSet.add(r.id);
                     break;
                 }
@@ -487,18 +487,17 @@ public class YelpDataBase implements MP5Db {
         return retSet;
     }
 
-    public Set<String> in(String s){
+    public Set<String> inAtom(String regex){
         Set<String> retSet = new HashSet<>();
-        String tofind = ".*" + s + ".*";
         for(String srest : restMap.keySet()){
             Restaurant r = restMap.get(srest);
             //full_address should take into account state and city
-            if(r.full_address.matches(tofind)){
+            if(r.full_address.matches(regex)){
                 retSet.add(r.id);
                 continue;
             }
             for(String location : r.neighbourhood){
-                if(location.matches(tofind)){
+                if(location.matches(regex)){
                     retSet.add(r.id);
                     break;
                 }
@@ -507,9 +506,9 @@ public class YelpDataBase implements MP5Db {
         return retSet;
     }
 
-    public Set<String> name(String s){
+    public Set<String> nameAtom(String regex){
         Set<String> retSet = new HashSet<>();
-        String tofind = ".*" + s + ".*";
+        String tofind = ".*" + regex + ".*";
         for(String srest : restMap.keySet()){
             Restaurant r = restMap.get(srest);
             if(r.name.matches(tofind)){
@@ -519,7 +518,7 @@ public class YelpDataBase implements MP5Db {
         return retSet;
     }
 
-    public Set<String> price(int num, String s) throws IllegalArgumentException{
+    public Set<String> priceAtom(String s, int num) throws IllegalArgumentException{
         Set<String> retSet = new HashSet<>();
         if(num > 5 || num < 0){
             throw new IllegalArgumentException();
@@ -571,7 +570,7 @@ public class YelpDataBase implements MP5Db {
         return retSet;
     }
 
-    public Set<String> rating(String s, int num) throws IllegalArgumentException{
+    public Set<String> ratingAtom(String s, int num) throws IllegalArgumentException{
         Set<String> retSet = new HashSet<>();
         if(num > 5 || num < 0){
             throw new IllegalArgumentException();
