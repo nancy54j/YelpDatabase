@@ -1,12 +1,19 @@
 package ca.ece.ubc.cpen221.mp5.Database;
 
+import ca.ece.ubc.cpen221.mp5.Antlr.RequestLexer;
+import ca.ece.ubc.cpen221.mp5.Antlr.RequestParser;
 import ca.ece.ubc.cpen221.mp5.Business.Restaurant;
 import ca.ece.ubc.cpen221.mp5.Review.Review;
 import ca.ece.ubc.cpen221.mp5.User.RestaurantUser;
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 
 import javax.json.*;
 import javax.json.stream.JsonParsingException;
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.*;
 import java.util.function.ToDoubleBiFunction;
@@ -453,10 +460,18 @@ public class YelpDataBase implements MP5Db {
     }
 
 
-    public static void main(String[] args){
+    public static void main(String[] args) throws IOException {
         YelpDataBase ydb = new YelpDataBase();
         System.out.println(ydb.getMatches("coffee"));
         System.out.println(ydb.kMeansClusters_json(6));
+
+        CharStream cs = CharStreams.fromReader(new StringReader(
+                "in(Telegraph Ave) && (category(Chinese) || category(Italian)) && price <= 2"));
+        RequestLexer lexer = new RequestLexer(cs);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        RequestParser parser = new RequestParser(tokens, ydb);
+        System.out.println(parser.req().restaurants);
+
 
         /*
         System.out.println(ydb.getMatches("chinese"));

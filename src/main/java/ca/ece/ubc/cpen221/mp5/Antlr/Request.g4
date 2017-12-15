@@ -2,7 +2,7 @@ grammar Request;
 
 //TODO: ADD TO CLASSPATH
 @header {
-    package package ca.ece.ubc.cpen221.mp5.Antlr;
+    package ca.ece.ubc.cpen221.mp5.Antlr;
     import java.util.*;
     import ca.ece.ubc.cpen221.mp5.Database.YelpDataBase;
 }
@@ -30,27 +30,27 @@ grammar Request;
 
 //head of parser
 req returns [Set<String> restaurants]:
-    andExpr {$restaurants = $andExpr.restaurants}
-    (OR andExpr {$restaurants.addAll($andExpr.restaurants);})* EOF
+    arg1=andExpr {$restaurants = $arg1.restaurants;}
+    (OR arg2=andExpr {$restaurants.addAll($arg2.restaurants);})* EOF
     ;
 
 andExpr returns [Set<String> restaurants]:
-    atom {$restaurants = $andExpr.restaurants}
-    ( AND atom {$restaurants.retainAll($andExpr.restaurants);})*
+    arg1=atom {$restaurants = $arg1.restaurants;}
+    ( AND arg2=atom {$restaurants.retainAll($arg2.restaurants);})*
     ;
 
 atom returns [Set<String> restaurants] :
-    in {$restaurants = $in.restaurants}
-    | category {$restaurants = $category.restaurants}
-    | rating {$restaurants = rating.restaurants}
-    | price {$restaurants = $price.restaurants}
-    | name {$restaurants = $name.restaurants}
-    | (LPAREN  orExpr {$restaurants = $orExpr.restaurants} RPAREN)
+    in {$restaurants = $in.restaurants;}
+    | category {$restaurants = $category.restaurants;}
+    | rating {$restaurants = $rating.restaurants;}
+    | price {$restaurants = $price.restaurants;}
+    | name {$restaurants = $name.restaurants;}
+    | (LPAREN  orExpr {$restaurants = $orExpr.restaurants;} RPAREN)
     ;
 
 orExpr returns [Set<String> restaurants]:
-    andExpr {$restaurants = $andExpr.restaurants}
-    ( OR andExpr)* {$restaurants.addAll($andExpr.restaurants);};
+    arg1=andExpr {$restaurants = $arg1.restaurants;}
+    ( OR arg2=andExpr)* {$restaurants.addAll($arg2.restaurants);};
 
 in returns [Set<String> restaurants]:
     IN LPAREN line RPAREN {$restaurants = ydb.inAtom($line.value);}
@@ -65,11 +65,11 @@ name returns [Set<String> restaurants]:
     ;
 
 rating returns [Set<String> restaurants]:
-    RATING ineq NUM {$restaurants = ydb.ratingAtom($ineq.v, Integer.parseInt($NUM.text);}
+    RATING ineq NUM {$restaurants = ydb.ratingAtom($ineq.v, Integer.parseInt($NUM.text));}
     ;
 
 price returns [Set<String> restaurants]:
-    PRICE ineq NUM {$restaurants = ydb.priceAtom($ineq.v, Integer.parseInt($NUM.text);}
+    PRICE ineq NUM {$restaurants = ydb.priceAtom($ineq.v, Integer.parseInt($NUM.text));}
     ;
 
 ineq returns [String v]:
