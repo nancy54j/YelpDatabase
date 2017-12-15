@@ -1,5 +1,5 @@
 plugins {
-  id 'com.github.kt3k.coveralls' version '2.6.3'
+    id 'com.github.kt3k.coveralls' version '2.6.3'
 }
 
 apply plugin: 'java'
@@ -16,10 +16,17 @@ repositories {
 dependencies {
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
+    // https://mvnrepository.com/artifact/org.glassfish/javax.json
+    compile group: 'org.glassfish', name: 'javax.json', version: '1.0.4'
+    // https://mvnrepository.com/artifact/org.apache.commons/commons-math3
+    compile group: 'org.apache.commons', name: 'commons-math3', version: '3.0'
+    // https://mvnrepository.com/artifact/org.antlr/antlr4-runtime
+    compile group: 'org.antlr', name: 'antlr4-runtime', version: '4.7'
+
 }
 
 test.testLogging {
-    exceptionFormat = "full";
+    exceptionFormat = "full"
     events "failed", "passed", "skipped", "standardOut", "standardError"
 }
 
