@@ -56,7 +56,7 @@ public class YelpClient {
             client.sendRequest("GETRESTAURANT h_we4E3zofRTf4G0JTEF0A");
 
             String reply = client.getReply();
-            System.out.println("reply:" + reply);
+            System.out.println("reply: " + reply);
 
             client.close();
         } catch (IOException e) {

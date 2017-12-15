@@ -55,10 +55,10 @@ public class YelpServer {
             while((line = br.readLine()) != null){
                 try{
                     if(line.matches("^GETRESTAURANT .*")){
-                        Matcher m = Pattern.compile("^(?:GETRESTAURANT )(.*)$").matcher(line);
+                        Matcher m = Pattern.compile("^(?:GETRESTAURANT )(.*)(?:\\s*)$").matcher(line);
                         if(m.find()){
                             try {
-                                out.println(ydb.getRestaurant(m.group(0)));
+                                out.println(ydb.getRestaurant(m.group(1)));
                             }
                             catch(IllegalArgumentException iae){
                                 out.println("invalid restaurant id");
@@ -69,10 +69,10 @@ public class YelpServer {
                         }
                     }
                     else if(line.matches("^ADDUSER .*")){
-                        Matcher m = Pattern.compile("^(?:ADDUSER )(.*)$").matcher(line);
+                        Matcher m = Pattern.compile("^(?:ADDUSER )(.*)(?:\\s*)$").matcher(line);
                         if(m.find()){
                             try {
-                                out.println(ydb.addUser(m.group(0)));
+                                out.println(ydb.addUser(m.group(1)));
                             }
                             catch(JsonParsingException e){
                                 out.println("ERR: INVALID_USER_STRING");
@@ -83,10 +83,10 @@ public class YelpServer {
                         }
                     }
                     else if(line.matches("^ADDRESTAURANT .*")){
-                        Matcher m = Pattern.compile("^(?:ADDRESTAURANT )(.*)$").matcher(line);
+                        Matcher m = Pattern.compile("^(?:ADDRESTAURANT )(.*)(?:\\s*)$").matcher(line);
                         if (m.find()) {
                             try {
-                                out.println(ydb.addRestaurant(m.group(0)));
+                                out.println(ydb.addRestaurant(m.group(1)));
                             }
                             catch(JsonParsingException jpe){
                                 out.println("ERR: INVALID_RESTAURANT_STRING");
@@ -97,10 +97,10 @@ public class YelpServer {
                         }
                     }
                     else if(line.matches("^ADDREVIEW .*")){
-                        Matcher m = Pattern.compile("^(?:GETRESTAURANT )(.*)$").matcher(line);
+                        Matcher m = Pattern.compile("^(?:GETRESTAURANT )(.*)(?:\\s)").matcher(line);
                         if(m.find()){
                             try {
-                                out.println(ydb.addReview(m.group(0)));
+                                out.println(ydb.addReview(m.group(1)));
                             }
                             catch(JsonParsingException e){
                                 out.println("ERR: INVALID_REVIEW_STRING");

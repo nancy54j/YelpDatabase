@@ -488,6 +488,8 @@ public class YelpDataBase implements MP5Db {
         RequestParser parser = new RequestParser(tokens, ydb);
         System.out.println(parser.req().restaurants);
 
+        System.out.println(ydb.getRestaurant("BJKIoQa5N2T_oDlLVf467Q"));
+
 
         /*
         System.out.println(ydb.getMatches("chinese"));
