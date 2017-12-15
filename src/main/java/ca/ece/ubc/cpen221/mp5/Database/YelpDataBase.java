@@ -523,10 +523,9 @@ public class YelpDataBase implements MP5Db {
 
     public Set<String> nameAtom(String regex){
         Set<String> retSet = new HashSet<>();
-        String tofind = ".*" + regex + ".*";
         for(String srest : restMap.keySet()){
             Restaurant r = restMap.get(srest);
-            if(r.name.matches(tofind)){
+            if(r.name.matches(regex)){
                 retSet.add(r.id);
             }
         }
