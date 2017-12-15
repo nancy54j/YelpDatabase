@@ -12,12 +12,13 @@ import java.util.regex.Pattern;
 
 public class YelpServer {
 
+    public static final int YELP_PORT = 4949;
     private ServerSocket serversocket;
     YelpDataBase ydb;
 
-    public YelpServer(int ptnumber) throws IOException {
+    public YelpServer() throws IOException {
         ydb = new YelpDataBase();
-        serversocket = new ServerSocket(ptnumber);
+        serversocket = new ServerSocket(YELP_PORT);
     }
 
     public void serve() throws IOException {
@@ -39,8 +40,6 @@ public class YelpServer {
         BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
 
-
-        //TODO: star rating cannot be over 5
         try{
             out.println("What would you like to do?\n\nGETARESTAURANT <business id> : Returns the specified " +
                     "restaurant in json format\nADDUSER <user information> : <user information> is in the form" +
@@ -70,7 +69,18 @@ public class YelpServer {
                         }
                     }
                     else if(line.matches("^ADDUSER .*")){
-
+                        Matcher m = Pattern.compile("^(?:ADDUSER )(.*)$").matcher(line);
+                        if(m.find()){
+                            try {
+                                out.println(ydb.addUser(m.group(0)));
+                            }
+                            catch(JsonParsingException e){
+                                out.println("ERR: INVALID_USER_STRING");
+                            }
+                        }
+                        else{
+                            out.println("ERR: INVALID_USER_STRING");
+                        }
                     }
                     else if(line.matches("^ADDRESTAURANT .*")){
                         Matcher m = Pattern.compile("^(?:ADDRESTAURANT )(.*)$").matcher(line);
@@ -79,15 +89,26 @@ public class YelpServer {
                                 out.println(ydb.addRestaurant(m.group(0)));
                             }
                             catch(JsonParsingException jpe){
-                                out.println("Json string error");
+                                out.println("ERR: INVALID_RESTAURANT_STRING");
                             }
                         }
                         else{
-                            out.println("invalid input format");
+                            out.println("ERR: INVALID_RESTAURANT_STRING");
                         }
                     }
                     else if(line.matches("^ADDREVIEW .*")){
-
+                        Matcher m = Pattern.compile("^(?:GETRESTAURANT )(.*)$").matcher(line);
+                        if(m.find()){
+                            try {
+                                out.println(ydb.addReview(m.group(0)));
+                            }
+                            catch(JsonParsingException e){
+                                out.println("ERR: INVALID_REVIEW_STRING");
+                            }
+                        }
+                        else{
+                            out.println("ERR: INVALID_REVIEW_STRING");
+                        }
                     }
                     else throw new IllegalArgumentException();
                 }
@@ -99,6 +120,15 @@ public class YelpServer {
             out.close();
         }
 
+    }
+
+    public static void main(String[] args){
+        try{
+            YelpServer server = new YelpServer();
+            server.serve();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 

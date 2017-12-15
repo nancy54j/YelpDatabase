@@ -1,6 +1,10 @@
 package ca.ece.ubc.cpen221.mp5.Review;
 
+import javax.json.Json;
+import javax.json.JsonBuilderFactory;
+import javax.json.JsonObject;
 import java.util.Arrays;
+import java.util.Date;
 
 public class Review {
     //TODO: add parameters
@@ -48,5 +52,20 @@ public class Review {
     @Override
     public int hashCode(){
         return user.hashCode() + business.hashCode();
+    }
+
+
+
+    @Override
+    public String toString(){
+        JsonBuilderFactory f = Json.createBuilderFactory(null);
+        JsonObject review = f.createObjectBuilder().add("type", "review")
+                .add("votes", f.createObjectBuilder().add("cool", upvotes[0])
+                        .add("useful", upvotes[1]).add("funny", upvotes[2]).build())
+                .add("business_id", business).add("review_id", this.id).add("text",
+                        this.text).add("stars", this.rating).add("user_id", this.user)
+                .add("date", (new Date(this.date*1000)).toString()).build();
+
+        return review.toString();
     }
 }

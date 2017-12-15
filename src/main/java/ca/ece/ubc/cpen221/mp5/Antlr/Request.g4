@@ -9,6 +9,7 @@ grammar Request;
 
 @parser::members{
     YelpDataBase ydb;
+
     public RequestParser(TokenStream input, YelpDataBase ydb) {
         this(input);
         this.ydb = ydb;

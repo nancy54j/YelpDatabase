@@ -2,6 +2,7 @@ package ca.ece.ubc.cpen221.mp5.User;
 
 import ca.ece.ubc.cpen221.mp5.Review.Review;
 
+import javax.json.*;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -118,4 +119,17 @@ public class RestaurantUser implements User {
     public void addReviewinitialize(String s){
         this.reviewID.add(s);
     }
+
+    @Override
+    public String toString(){
+        JsonBuilderFactory f = Json.createBuilderFactory(null);
+        JsonObject restUser = f.createObjectBuilder().add("url", this.url).add("votes",
+                f.createObjectBuilder().add("funny", votes[0]).add("useful", votes[1])
+                .add("cool", votes[2]).build()).add("review_count", reviewCount)
+                .add("type", "user").add("user_id", this.UserID).add("name",
+                this.name).add("average_stars", this.aveStar).build();
+
+        return restUser.toString();
+    }
+
 }

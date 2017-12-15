@@ -48,8 +48,15 @@ public class YelpDataBase implements MP5Db {
         return restMap.get(restID).toString();
     }
 
-    public boolean addUser(String restUser)throws JsonParsingException {
-        return false;
+    public String addUser(String restUser)throws JsonParsingException {
+        JsonObject user = Json.createReader(new StringReader(restUser)).readObject();
+        RestaurantUser ru = new RestaurantUser(user.getString("name"));
+        if(addnewUser(ru)){
+            return "Add success: " + ru.toString();
+        }
+        else{
+            return "Something went wrong internally. Add unsuccessful";
+        }
     }
 
     public String addRestaurant(String rest)throws JsonParsingException{
@@ -70,30 +77,36 @@ public class YelpDataBase implements MP5Db {
                 jsonrestaurant.getString("state"));
 
         if(addnewRestaurant(r)){
-            return "Add success:" + r.toString();
+            return "Add success: " + r.toString();
         }
         else{
             return "Something went wrong internally. Add unsuccessful";
         }
     }
 
-    public boolean addReview(String rev)throws JsonParsingException{
+    public String addReview(String rev)throws JsonParsingException{
         JsonObject review = Json.createReader(new StringReader(rev)).readObject();
         double starRating = review.getJsonNumber("stars").doubleValue();
         if (starRating > 5 || starRating < 1) {
             throw new IllegalArgumentException("Star rating can not be greater than 5!");
         }
-
         String user_id = review.getString("user_id");
         String business_id = review.getString("business_id");
-        String text = review.getString("text");
+        String text;
+        try{
+            text = review.getString("text");
+        }
+        catch(JsonParsingException e){
+            text = "";
+        }
 
         Review r = new Review(starRating, text, user_id, business_id);
-        if(revMap.containsKey(r.id)){
-            revMap.remove(r.id);
+        if(addnewReview(r)){
+            return "Add success: " + r.toString();
         }
-        this.revMap.put(r.id,r);
-        return true;
+        else{
+            return "Something went wrong internally. Add unsuccessful";
+        }
     }
 
     /**
@@ -148,6 +161,8 @@ public class YelpDataBase implements MP5Db {
         }
 
         synchronized(modifydatabase){
+            //if there is already a review linking the user and the restaurant, then it will
+            //appear in both the user's review set as well as the restaurant's review set
             Set<String> intersect = rrev.getReviews();
             intersect.retainAll(urev.getReviews());
             if(!intersect.isEmpty()){
@@ -469,6 +484,7 @@ public class YelpDataBase implements MP5Db {
                 "in(Telegraph Ave) && (category(Chinese) || category(Italian)) && price <= 2"));
         RequestLexer lexer = new RequestLexer(cs);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
+
         RequestParser parser = new RequestParser(tokens, ydb);
         System.out.println(parser.req().restaurants);
 
