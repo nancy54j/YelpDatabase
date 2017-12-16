@@ -480,13 +480,7 @@ public class YelpDataBase implements MP5Db {
         System.out.println(ydb.getMatches("coffee"));
         System.out.println(ydb.kMeansClusters_json(6));
 
-        CharStream cs = CharStreams.fromReader(new StringReader(
-                "in(Telegraph Ave) && (category(Chinese) || category(Italian)) && price <= 2"));
-        RequestLexer lexer = new RequestLexer(cs);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
 
-        RequestParser parser = new RequestParser(tokens, ydb);
-        System.out.println(parser.req().restaurants);
 
         System.out.println(ydb.getRestaurant("BJKIoQa5N2T_oDlLVf467Q"));
 
@@ -504,8 +498,18 @@ public class YelpDataBase implements MP5Db {
         */
     }
 
+    //returns the set of IDs of restaurants that match this the given request
+    public Set<String> query(String request) throws IOException{
+        CharStream cs = CharStreams.fromReader(new StringReader(request));
+        RequestLexer lexer = new RequestLexer(cs);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+
+        RequestParser parser = new RequestParser(tokens, this);
+        return parser.req().restaurants;
+    }
+
     //String s is regex
-    //there's a lot of useless code at the start, but I don't know what to do with it
+    //there's a lot of repetitive code at the start of each method, but I don't know how to shorten it
     public Set<String> categoryAtom(String regex){
         Set<String> retSet = new HashSet<>();
         for(String srest : restMap.keySet()){

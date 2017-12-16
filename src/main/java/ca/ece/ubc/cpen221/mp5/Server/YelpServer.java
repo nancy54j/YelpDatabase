@@ -51,10 +51,12 @@ public class YelpServer {
         try {
             String line;
             while ((line = br.readLine()) != null) {
+                System.out.println("String recieved:" + line);
                 if (line.matches("^GETRESTAURANT .*")) {
                     Matcher m = Pattern.compile("^(?:GETRESTAURANT )(.*)(?:\\s*)$").matcher(line);
                     if (m.find()) {
                         try {
+                            System.out.println("getting restaurant: " + m.group(1));
                             out.println(ydb.getRestaurant(m.group(1)));
                         } catch (IllegalArgumentException iae) {
                             out.println("invalid restaurant id");
@@ -64,9 +66,9 @@ public class YelpServer {
                     }
                 } else if (line.matches("^ADDUSER .*")) {
                     Matcher m = Pattern.compile("^(?:ADDUSER )(.*)$").matcher(line);
-
                     if (m.find()) {
                         try {
+                            System.out.println("adding user:" + m.group(1));
                             out.println(ydb.addUser(m.group(1)));
                         } catch (IllegalArgumentException iae) {
                             out.println("invalid user string");
@@ -95,21 +97,10 @@ public class YelpServer {
                         out.println("invalid input format");
                     }
                 }
-                else if (line.matches("^ADDRESTAURANT .*")) {
-                    Matcher m = Pattern.compile("^(?:ADDRESTAURANT )(.*)$").matcher(line);
-                    if (m.find()) {
-                        try {
-                            out.println(ydb.addRestaurant(m.group(1)));
-                        } catch (JsonParsingException jpe) {
-                            out.println("Json string error");
-                        }
-                    } else {
-                        out.println("invalid input format");
-                    }
-                }
                 else out.println("unrecognized input");
+                out.flush();
             }
-            out.flush();
+
         }
         finally {
             br.close();
@@ -128,15 +119,3 @@ public class YelpServer {
     }
 
 }
-/*
- out.println("What would you like to do?\n\nGETARESTAURANT <business id> : Returns the specified " +
-                    "restaurant in json format\nADDUSER <user information> : <user information> is in the form" +
-                    "{\"name\": <Your name>. A new user with a unique ID will be created for you and displayed " +
-                    "on the screen in json format.\nADDRESTAURANT <restaurantinformation> : <restaurantinformation> " +
-                    "is in the form: {\"latitide\": <double>, \"longitude\": <double>, \"name\": \"<name>\", " +
-                    "\"neighborhood\": [\"<neighborhoods>\", \"<neighborhood>\"], \"full_address\": \"<full_address\"" +
-                    ", \"city\": \"<city>\", \"state\": \"<state>\"}, where all the things in \"<>\" are filled out" +
-                    "by you.\nADDREVIEW <review information> : add a review, with the following format: {\"starRating\"" +
-                            ": <double>, \"text\": \"<reviewtext>\", \"user_id\": \"<userID>\", \"business_id\":" +
-                            "\"<business_id>\"}" );
-*/
