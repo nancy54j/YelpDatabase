@@ -57,9 +57,12 @@ public class YelpClient {
 
             client.sendRequest("ADDUSER {\"name\": \"Sathish G.\"}");
 
+            client.sendRequest("QUERY in(Telegraph Ave) && (category(Chinese) || category(Italian)) && price <= 2");
+
             String reply = client.getReply();
             String reply1 = client.getReply();
-            System.out.println("reply:" + reply + "\nreply: " + reply1);
+            String reply2 = client.getReply();
+            System.out.println("reply:" + reply + "\nreply: " + reply1 + "\nreply: " + reply2);
 
 
             client.close();

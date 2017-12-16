@@ -1,5 +1,7 @@
 package ca.ece.ubc.cpen221.mp5.Database;
 
+import ca.ece.ubc.cpen221.mp5.Antlr.BailErrorStrategy;
+import ca.ece.ubc.cpen221.mp5.Antlr.BailRequestLexer;
 import ca.ece.ubc.cpen221.mp5.Antlr.RequestLexer;
 import ca.ece.ubc.cpen221.mp5.Antlr.RequestParser;
 import ca.ece.ubc.cpen221.mp5.Business.Restaurant;
@@ -484,6 +486,7 @@ public class YelpDataBase implements MP5Db {
 
         System.out.println(ydb.getRestaurant("BJKIoQa5N2T_oDlLVf467Q"));
 
+        System.out.println(ydb.query("in(Telegraph Ave) && (category(Chinese) || category(Italian)) && price <= 2"));
 
         /*
         System.out.println(ydb.getMatches("chinese"));
@@ -499,12 +502,13 @@ public class YelpDataBase implements MP5Db {
     }
 
     //returns the set of IDs of restaurants that match this the given request
-    public Set<String> query(String request) throws IOException{
+    public Set<String> query(String request) throws IOException, RuntimeException{
         CharStream cs = CharStreams.fromReader(new StringReader(request));
-        RequestLexer lexer = new RequestLexer(cs);
+        BailRequestLexer lexer = new BailRequestLexer(cs);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
 
         RequestParser parser = new RequestParser(tokens, this);
+        parser.setErrorHandler(new BailErrorStrategy());
         return parser.req().restaurants;
     }
 

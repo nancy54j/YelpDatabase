@@ -6,6 +6,7 @@ import javax.json.stream.JsonParsingException;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -65,7 +66,7 @@ public class YelpServer {
                         out.println("invalid input format");
                     }
                 } else if (line.matches("^ADDUSER .*")) {
-                    Matcher m = Pattern.compile("^(?:ADDUSER )(.*)$").matcher(line);
+                    Matcher m = Pattern.compile("^(?:ADDUSER )(.*)(?:\\s*)$").matcher(line);
                     if (m.find()) {
                         try {
                             System.out.println("adding user:" + m.group(1));
@@ -76,7 +77,7 @@ public class YelpServer {
                     }
                 }
                 else if (line.matches("^ADDREVIEW .*")) {
-                    Matcher m = Pattern.compile("^(?:ADDREVIEW )(.*)$").matcher(line);
+                    Matcher m = Pattern.compile("^(?:ADDREVIEW )(.*)(?:\\s*)$").matcher(line);
                     if (m.find()) {
                         try {
                             out.println(ydb.addReview(m.group(1)));
@@ -86,7 +87,7 @@ public class YelpServer {
                     }
                 }
                 else if (line.matches("^ADDRESTAURANT .*")) {
-                    Matcher m = Pattern.compile("^(?:ADDRESTAURANT )(.*)$").matcher(line);
+                    Matcher m = Pattern.compile("^(?:ADDRESTAURANT )(.*)(?:\\s*)$").matcher(line);
                     if (m.find()) {
                         try {
                             out.println(ydb.addRestaurant(m.group(1)));
@@ -95,6 +96,25 @@ public class YelpServer {
                         }
                     } else {
                         out.println("invalid input format");
+                    }
+                }
+                else if(line.matches("^QUERY .*")) {
+                    Matcher m = Pattern.compile("^(?:QUERY )(.*)(?:\\s*)$").matcher(line);
+                    if(m.find()) {
+                        try {
+                            Set<String> restaurants = ydb.query(m.group(1));
+                            if(restaurants.isEmpty()) {
+                                out.println("ERR: NO_MATCH");
+                            }
+                            else {
+                                out.println(restaurants.toString());
+                            }
+                        }
+                        //exceptions here should be a result of the parser failing, so just attribute it to
+                        //faulty query
+                        catch(Exception e) {
+                            out.println("ERR: INVALID_QUERY");
+                        }
                     }
                 }
                 else out.println("unrecognized input");
