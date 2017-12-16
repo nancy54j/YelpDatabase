@@ -59,10 +59,14 @@ public class YelpClient {
 
             client.sendRequest("QUERY in(Telegraph Ave) && (category(Chinese) || category(Italian)) && price <= 2");
 
+            client.sendRequest("QUERY LDSKFJAw3 && dslakfa");
             String reply = client.getReply();
             String reply1 = client.getReply();
             String reply2 = client.getReply();
+            String reply3 = client.getReply();
+
             System.out.println("reply:" + reply + "\nreply: " + reply1 + "\nreply: " + reply2);
+            System.out.println("reply: " + reply3);
 
 
             client.close();
