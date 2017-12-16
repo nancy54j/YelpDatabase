@@ -53,10 +53,13 @@ public class YelpClient {
         try {
             YelpClient client = new YelpClient("localhost", YelpServer.YELP_PORT);
 
-            client.sendRequest("GETRESTAURANT h_we4E3zofRTf4G0JTEF0A");
+            client.sendRequest("GETRESTAURANT BJKIoQa5N2T_oDlLVf467Q");
 
+            client.sendRequest("ADDUSER {\"name\": \"Sathish G.\"}");
             String reply = client.getReply();
-            System.out.println("reply: " + reply);
+            String reply1 = client.getReply();
+            System.out.println("reply:" + reply + "\nreply: " + reply1);
+
 
             client.close();
         } catch (IOException e) {
