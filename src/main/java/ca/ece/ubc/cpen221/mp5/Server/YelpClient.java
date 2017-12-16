@@ -56,6 +56,7 @@ public class YelpClient {
             client.sendRequest("GETRESTAURANT BJKIoQa5N2T_oDlLVf467Q");
 
             client.sendRequest("ADDUSER {\"name\": \"Sathish G.\"}");
+            
             String reply = client.getReply();
             String reply1 = client.getReply();
             System.out.println("reply:" + reply + "\nreply: " + reply1);

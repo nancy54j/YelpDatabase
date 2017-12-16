@@ -31,7 +31,7 @@ public class RestaurantUser implements User {
     public RestaurantUser(String name){
         this.name = name;
         this.UserID = "+NEW+" + gen_id++;
-        this.url = "http://www.yelp.com/user_details?userid=" + gen_id;
+        this.url = "http://www.yelp.com/user_details?userid=" + UserID;
         this.aveStar = 0;
         reviewID = new HashSet<>();
         votes = new int[] {0, 0, 0};
