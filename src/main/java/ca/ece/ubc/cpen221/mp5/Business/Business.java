@@ -49,7 +49,7 @@ public class Business implements Reviewable {
         this.reviewCount = 0;
         this.reviews = new HashSet<>();
 
-        this.id = "+NEW+" + gen_id++;
+        this.id = "+NEWREST+" + gen_id++;
     }
 
     //gets the longtitude and latitude of a location

@@ -43,6 +43,15 @@ public class Restaurant extends Business {
         this.photo_url = "";
     }
 
+    public void setPrice(int p){
+        if(p < 0 || p > 5){
+            throw new IllegalArgumentException();
+        }
+        else{
+            this.price = p;
+        }
+    }
+
     public void addSchool(String school){
         schools.add(school);
     }

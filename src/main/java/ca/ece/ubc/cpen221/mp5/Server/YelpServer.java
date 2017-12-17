@@ -2,6 +2,7 @@ package ca.ece.ubc.cpen221.mp5.Server;
 
 import ca.ece.ubc.cpen221.mp5.Database.YelpDataBase;
 
+import javax.json.JsonException;
 import javax.json.stream.JsonParsingException;
 import java.io.*;
 import java.net.ServerSocket;
@@ -54,55 +55,59 @@ public class YelpServer {
             while ((line = br.readLine()) != null) {
                 System.out.println("String recieved:" + line);
                 if (line.matches("^GETRESTAURANT .*")) {
-                    Matcher m = Pattern.compile("^(?:GETRESTAURANT )(.*)(?:\\s*)$").matcher(line);
+                    Matcher m = Pattern.compile("^(?:GETRESTAURANT )(.*)$").matcher(line);
                     if (m.find()) {
                         try {
-                            System.out.println("getting restaurant: " + m.group(1));
-                            out.println(ydb.getRestaurant(m.group(1)));
+                            out.println(ydb.getRestaurant(m.group(1).trim()));
                         } catch (IllegalArgumentException iae) {
-                            out.println("invalid restaurant id");
+                            out.println("ERR: NO_SUCH_RESTAURANT");
                         }
-                    } else {
-                        out.println("invalid input format");
                     }
                 } else if (line.matches("^ADDUSER .*")) {
-                    Matcher m = Pattern.compile("^(?:ADDUSER )(.*)(?:\\s*)$").matcher(line);
+                    Matcher m = Pattern.compile("^(?:ADDUSER )(.*)$").matcher(line);
                     if (m.find()) {
                         try {
-                            System.out.println("adding user:" + m.group(1));
-                            out.println(ydb.addUser(m.group(1)));
-                        } catch (IllegalArgumentException iae) {
-                            out.println("invalid user string");
+                            out.println(ydb.addUser(m.group(1)).trim());
+                        } catch (JsonException e) {
+                            out.println("ERR: INVALID_USER_STRING");
+                        } catch (NullPointerException e){
+                            out.println("ERR: INVALID_USER_STRING (MISSING INFO)");
                         }
                     }
                 }
                 else if (line.matches("^ADDREVIEW .*")) {
-                    Matcher m = Pattern.compile("^(?:ADDREVIEW )(.*)(?:\\s*)$").matcher(line);
+                    Matcher m = Pattern.compile("^(?:ADDREVIEW )(.*)$").matcher(line);
                     if (m.find()) {
                         try {
-                            out.println(ydb.addReview(m.group(1)));
-                        } catch (IllegalArgumentException iae) {
-                            out.println("invalid string");
+                            out.println(ydb.addReview(m.group(1)).trim());
+                        } catch (JsonException e) {
+                            out.println("ERR: INVALID_RATING_STRING");
+                        } catch (NullPointerException e){
+                            out.println("ERR: INVALID_RATING_STRING (MISSING INFO)");
+                        } catch (IllegalArgumentException e){
+                            out.println("ERR: STAR RATING INVALID");
                         }
                     }
                 }
                 else if (line.matches("^ADDRESTAURANT .*")) {
-                    Matcher m = Pattern.compile("^(?:ADDRESTAURANT )(.*)(?:\\s*)$").matcher(line);
+                    Matcher m = Pattern.compile("^(?:ADDRESTAURANT )(.*)$").matcher(line);
                     if (m.find()) {
                         try {
-                            out.println(ydb.addRestaurant(m.group(1)));
-                        } catch (IllegalArgumentException iae) {
-                            out.println("invalid string");
+                            out.println(ydb.addRestaurant(m.group(1)).trim());
+                        } catch (JsonException e) {
+                            out.println("ERR: INVALID_RESTAURANT_STRING");
+                        } catch (NullPointerException e){
+                            out.println("ERR: INVALID_RESTAURANT_STRING (MISSING INFO)");
                         }
                     } else {
                         out.println("invalid input format");
                     }
                 }
                 else if(line.matches("^QUERY .*")) {
-                    Matcher m = Pattern.compile("^(?:QUERY )(.*)(?:\\s*)$").matcher(line);
+                    Matcher m = Pattern.compile("^(?:QUERY )(.*)$").matcher(line);
                     if(m.find()) {
                         try {
-                            Set<String> restaurants = ydb.query(m.group(1));
+                            Set<String> restaurants = ydb.query(m.group(1).trim());
                             if(restaurants.isEmpty()) {
                                 out.println("ERR: NO_MATCH");
                             }
@@ -113,11 +118,11 @@ public class YelpServer {
                         //exceptions here should be a result of the parser failing, so just attribute it to
                         //faulty query
                         catch(Exception e) {
-                            out.println("ERR: INVALID_QUERY");
+                            out.println("ERR: INVALID_QUERY_STRING");
                         }
                     }
                 }
-                else out.println("unrecognized input");
+                else out.println("ERR: ILLEGAL_REQUEST");
                 out.flush();
             }
 

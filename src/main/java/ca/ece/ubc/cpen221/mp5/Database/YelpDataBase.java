@@ -50,7 +50,7 @@ public class YelpDataBase implements MP5Db {
         return restMap.get(restID).toString();
     }
 
-    public String addUser(String restUser)throws JsonParsingException {
+    public String addUser(String restUser)throws JsonException {
         JsonObject user = Json.createReader(new StringReader(restUser)).readObject();
         RestaurantUser ru = new RestaurantUser(user.getString("name"));
         if(addnewUser(ru)){
@@ -61,7 +61,7 @@ public class YelpDataBase implements MP5Db {
         }
     }
 
-    public String addRestaurant(String rest)throws JsonParsingException{
+    public String addRestaurant(String rest)throws JsonException{
         JsonObject jsonrestaurant = Json.createReader(new StringReader(rest)).readObject();
 
         //make a neighborhood string[]
@@ -69,7 +69,9 @@ public class YelpDataBase implements MP5Db {
         String[] neighborhood = new String[a.size()];
         int i = 0;
         for(JsonValue s : a){
-            neighborhood[i] = s.toString();
+            //need this because I need to get rid of the quotations that appear with the toString() method
+            neighborhood[i] = s.toString().substring(1,s.toString().length()-1);
+
             i++;
         }
         Restaurant r = new Restaurant(jsonrestaurant.getJsonNumber("latitude").doubleValue(),
@@ -86,7 +88,7 @@ public class YelpDataBase implements MP5Db {
         }
     }
 
-    public String addReview(String rev)throws JsonParsingException{
+    public String addReview(String rev)throws JsonException, IllegalArgumentException{
         JsonObject review = Json.createReader(new StringReader(rev)).readObject();
         double starRating = review.getJsonNumber("stars").doubleValue();
         if (starRating > 5 || starRating < 1) {
@@ -103,11 +105,18 @@ public class YelpDataBase implements MP5Db {
         }
 
         Review r = new Review(starRating, text, user_id, business_id);
-        if(addnewReview(r)){
+        int addCondition = addnewReview(r);
+        if(addCondition == 0){
             return "Add success: " + r.toString();
         }
-        else{
-            return "Something went wrong internally. Add unsuccessful";
+        else if (addCondition == 1){
+            return "ERR:NO_SUCH_USER AND/OR RESTAURANT";
+        }
+        else if (addCondition == 2){
+            return "ERR:NO_SUCH_RESTAURANT";
+        }
+        else { //addcondition = 3
+            return "Previous detected review deleted and new one added: " + r.toString();
         }
     }
 
@@ -149,18 +158,24 @@ public class YelpDataBase implements MP5Db {
      * review are within this database, and then will check if there already exists a review between
      * the user and a restaurant. If there is, it will delete that review and add the new review
      *
+     * The return int value will represent whether it is successful or not and if it isn't, what error it is:
+     * 0 - add success
+     * 1 - no user
+     * 2 - no restaurant
+     * 3 - review exists - deleted and added new one
      * This method is used by addReview, which is then called from the server that processes requests
      *
      * @param r review
      * @return
      */
-    private boolean addnewReview(Review r){
+    private int addnewReview(Review r){
+        int retval = 0;
         Restaurant rrev = restMap.get(r.business);
         RestaurantUser urev = userMap.get(r.business);
         //if user/business are not in this database, or if this review has been recorded already
-        if(rrev == null || urev == null || revMap.keySet().contains(r.id)){
-            return false;
-        }
+
+        if(urev == null) return 1;
+        if(rrev == null) return 2;
 
         synchronized(modifydatabase){
             //if there is already a review linking the user and the restaurant, then it will
@@ -169,12 +184,13 @@ public class YelpDataBase implements MP5Db {
             intersect.retainAll(urev.getReviews());
             if(!intersect.isEmpty()){
                 deleteReview(urev, rrev);
+                retval = 3;
             }
             rrev.addReview(r);
             urev.addReview(r);
             revMap.put(r.id, r);
         }
-        return true;
+        return retval;
     }
 
     /**
