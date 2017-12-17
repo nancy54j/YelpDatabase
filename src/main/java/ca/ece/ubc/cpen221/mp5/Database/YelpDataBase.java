@@ -100,11 +100,12 @@ public class YelpDataBase implements MP5Db {
         try{
             text = review.getString("text");
         }
-        catch(JsonParsingException e){
+        catch(Exception e){
             text = "";
         }
 
         Review r = new Review(starRating, text, user_id, business_id);
+
         int addCondition = addnewReview(r);
         if(addCondition == 0){
             return "Add success: " + r.toString();

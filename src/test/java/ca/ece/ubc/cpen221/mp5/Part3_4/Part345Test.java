@@ -164,6 +164,20 @@ public class Part345Test {
         }
     }
 
+/*TODO: TESTREVIEW:
+
+Review format should be: {"stars": <int>, "user_id": <id>, "business_id": <id>, "text": <text(which is optional)>}
+    - add 1 or 2 reviews between existing restaurants
+    - add a review with a non-existent database user
+    - add a review with a non-existent restaurant
+    - add a review between the new generated restaurant and a new generated user
+        > check if the rating of the new restaurant has changed
+    - add another review between the same two new restaurants
+        > check if the rating has been adjusted
+    - add a review that doesn't have a text field
+    - add a review that has over 5 stars
+ */
+
     @Test
     public void test9(){
 
