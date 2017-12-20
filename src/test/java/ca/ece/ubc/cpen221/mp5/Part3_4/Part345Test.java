@@ -180,7 +180,15 @@ Review format should be: {"stars": <int>, "user_id": <id>, "business_id": <id>, 
 
     @Test
     public void test9(){
-
+        try{
+            YelpClient client = new YelpClient("localhost", YelpServer.YELP_PORT);
+            client.sendRequest("ADDREVIEW {\"stars\": 3.5, \"user_id\": QScfKdcxsa7t5qfE0Ev0Cw, \"business_id\": h_we4E3zofRTf4G0JTEF0A, \"text\": mediocre place blargh");
+            System.out.println(client.getReply());
+            //assertTrue(client.getReply().matches(".*ERR: INVALID_RESTAURANT_STRING \\(MISSING INFO\\).*"));
+        }
+        catch(IOException e){
+            fail("Exception thrown: this shouldn't have failed");
+        }
     }
 
 }
