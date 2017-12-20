@@ -2,34 +2,45 @@ package ca.ece.ubc.cpen221.mp5.Database;
 
 import ca.ece.ubc.cpen221.mp5.Antlr.BailErrorStrategy;
 import ca.ece.ubc.cpen221.mp5.Antlr.BailRequestLexer;
-import ca.ece.ubc.cpen221.mp5.Antlr.RequestLexer;
 import ca.ece.ubc.cpen221.mp5.Antlr.RequestParser;
 import ca.ece.ubc.cpen221.mp5.Business.Restaurant;
 import ca.ece.ubc.cpen221.mp5.Review.Review;
 import ca.ece.ubc.cpen221.mp5.User.RestaurantUser;
-import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 
 import javax.json.*;
-import javax.json.stream.JsonParsingException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.*;
 import java.util.function.ToDoubleBiFunction;
 
 
-
+/**
+ * This is the main representation of the YelpDataBase and is wear the magic happens ~
+ * YelpDataBase primarily works off the three map objects below, and maps were chosen for its low complexity
+ * time when requesting a certain restaurant or user or review, which happens frequently when requests to
+ * add reviews, restaurants, etc are going to made.
+ *
+ * It also has a private modifydatabase object to protect against multi-threading issues - methods that
+ * alter the three map fields will first need to acquire a lock on the object before they can do their
+ * operation.
+ *
+ * The main methods that this database does can be found on MP5Db
+ *
+ * TODO: ***NOTE TO THE MARKER***: the getMatches function is treated as a blanket search function,
+ * TODO:                           and the Part5 Query function is actually called query which returns
+ * TODO:                           a set of strings. Thanks for reading
+ */
 public class YelpDataBase implements MP5Db {
     Map<String, Restaurant> restMap;
     Map<String, RestaurantUser> userMap;
     Map<String, Review> revMap;
     private Object modifydatabase;
 
-
-    //initalize yelpDataBase
+    // initalizes YelpDatabase given the three .json dataset objects using the ParseJson class
     public YelpDataBase(){
         ParseJson pj = new ParseJson("./data/users.json", "./data/restaurants.json",
                 "./data/reviews.json");
@@ -41,6 +52,11 @@ public class YelpDataBase implements MP5Db {
     }
 
     //this section is for queries of the server
+    //the servers call the 4 public methods shown below, and these methods are responsible for
+    //parsing the input json string into a review, restaurant, etc object, and then that object is then
+    //passed to a private thread-safe private method that actually adds the object to the database.
+    //String return value is the reply that is going to be given to the client through the server if the
+    //method executes correctly, and all the error-handling is done through the server as well.
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     public String getRestaurant(String restID) throws IllegalArgumentException{
         if(!restMap.keySet().contains(restID)){
@@ -130,9 +146,11 @@ public class YelpDataBase implements MP5Db {
      * @return whether or not the user was successfully added
      */
     private boolean addnewUser(RestaurantUser ru){
-        if(!userMap.keySet().contains(ru.UserID)){
-            userMap.put(ru.UserID, ru);
-            return true;
+        synchronized(modifydatabase) {
+            if (!userMap.keySet().contains(ru.UserID)) {
+                userMap.put(ru.UserID, ru);
+                return true;
+            }
         }
         return false;
     }
@@ -172,7 +190,7 @@ public class YelpDataBase implements MP5Db {
     private int addnewReview(Review r){
         int retval = 0;
         Restaurant rrev = restMap.get(r.business);
-        RestaurantUser urev = userMap.get(r.business);
+        RestaurantUser urev = userMap.get(r.user);
         //if user/business are not in this database, or if this review has been recorded already
 
         if(urev == null) return 1;
@@ -354,30 +372,55 @@ public class YelpDataBase implements MP5Db {
         return retjson;
     }
 
-    //used by k-means
+    /**
+     * this class is used exclusively by k-means and implements the abstract node datatype.
+     * new "members" can be added to this node in the form of a map entry id -> location. Look
+     * at the method specification for more details.
+     */
     private class Node{
         Map<String, double[]> memberlocations;
         double[] location;
         int number; //identifies this node from another node
 
+        /**
+         * node constructor - the number identifies each node, and the position is initalized to 0,0
+         * @param number
+         */
         Node(int number){
             memberlocations = new HashMap<>();
             location = new double[]{0, 0};
             this.number = number;
         }
 
+        /**
+         * add a new map value to this node only
+         * @param s
+         * @param location
+         */
         void addmember(String s, double[] location){
             memberlocations.put(s, location);
         }
 
+        /**
+         * removes a map value from this node only
+         * @param s
+         */
         void removemember(String s){
             memberlocations.remove(s);
         }
 
+        /**
+         * returns the set of all members that are belong to this node
+         * @return
+         */
         Set<String> getMembers(){
             return memberlocations.keySet();
         }
 
+        /**
+         * calcuate the location of this node based on the map values that belong to this node
+         * @return
+         */
         double[] calcNewLocation(){
             double[] newlocation = new double[] {0,0};
             for(double[] d : memberlocations.values()){
@@ -391,13 +434,23 @@ public class YelpDataBase implements MP5Db {
             return newlocation;
         }
 
+        /**
+         * given the location of another point(lat/long), calculate the distance from this node
+         * to that point.
+         * @param a
+         * @return
+         */
         private double calcDistance(double[] a){
             double dx = a[0] - location[0];
             double dy = a[1] - location[1];
             return Math.sqrt(dx*dx + dy*dy);
         }
 
-        //{"x": number, "y": number, "name": "string", "cluser": int, "weight": int}
+        /**
+         * returns the json String representation of this node in the following form:
+         * {"x": number, "y": number, "name": "string", "cluser": int, "weight": int}
+         * @return
+         */
         String toJsonString(){
             String json = "";
             if(memberlocations.isEmpty()){
@@ -412,6 +465,7 @@ public class YelpDataBase implements MP5Db {
             return json;
         }
     }
+
 
     public double linearRegression(YelpDataBase database,String businessID, String userID) {
 
@@ -493,34 +547,21 @@ public class YelpDataBase implements MP5Db {
         return predictRating;
     }
 
-
-    public static void main(String[] args) throws IOException {
-        YelpDataBase ydb = new YelpDataBase();
-        System.out.println(ydb.getMatches("coffee"));
-        System.out.println(ydb.kMeansClusters_json(6));
-
-
-
-        System.out.println(ydb.getRestaurant("BJKIoQa5N2T_oDlLVf467Q"));
-
-        System.out.println(ydb.query("in(Telegraph Ave) && (category(Chinese) || category(Italian)) && price <= 2"));
-
-        /*
-        System.out.println(ydb.getMatches("chinese"));
-
-        System.out.println(ydb.users);
-        System.out.println(ydb.userMap.get("_NH7Cpq3qZkByP5xR4gXog").getReviewCount());
-        */
-
-        /*
-        ToDoubleBiFunction<YelpDataBase, String> func = ydb.getPredictorFunction("VfqkoiMTtw3_BVk9wAB_YA");
-        System.out.println(func.applyAsDouble(ydb, "_NH7Cpq3qZkByP5xR4gXog"));
-        */
-    }
-
-    //returns the set of IDs of restaurants that match this the given request
+    /**
+     * This method invokes the parser and lexer specified by the grammar file found in the Antlr package
+     * That parser runs through the given code, and calls on the necessary functions within yelpdatabase,
+     * and returns the set of restaurants that match the given query string.
+     * Exceptions are thrown if the parser can't parse the text properly.
+     * @param request
+     * @return
+     * @throws IOException
+     * @throws RuntimeException
+     */
     public Set<String> query(String request) throws IOException, RuntimeException{
+        //the lexer takes in a charstream
         CharStream cs = CharStreams.fromReader(new StringReader(request));
+        //bailrequestlexer extends the normal lexer, with the only difference being bailrequestlexer throws
+        //exceptions if it can't match the text properly.
         BailRequestLexer lexer = new BailRequestLexer(cs);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
 
@@ -529,8 +570,14 @@ public class YelpDataBase implements MP5Db {
         return parser.req().restaurants;
     }
 
-    //String s is regex
-    //there's a lot of repetitive code at the start of each method, but I don't know how to shorten it
+    //These next 5 methods are used exclusively by the Parser in query to return sets of restaurants that
+    //match the given criteria.
+
+    /**
+     * returns all the id of restaurants that have a category that match given query string
+     * @param regex
+     * @return
+     */
     public Set<String> categoryAtom(String regex){
         Set<String> retSet = new HashSet<>();
         for(String srest : restMap.keySet()){
@@ -545,6 +592,12 @@ public class YelpDataBase implements MP5Db {
         return retSet;
     }
 
+    /**
+     * returns all the id of restaurants that have a location/address/neighbourhood that matches the given
+     * query string
+     * @param regex
+     * @return
+     */
     public Set<String> inAtom(String regex){
         Set<String> retSet = new HashSet<>();
         for(String srest : restMap.keySet()){
@@ -564,6 +617,11 @@ public class YelpDataBase implements MP5Db {
         return retSet;
     }
 
+    /**
+     * returns all the id of restaurants that have a name that matches the given query string
+     * @param regex
+     * @return
+     */
     public Set<String> nameAtom(String regex){
         Set<String> retSet = new HashSet<>();
         for(String srest : restMap.keySet()){
@@ -575,6 +633,13 @@ public class YelpDataBase implements MP5Db {
         return retSet;
     }
 
+    /**
+     * Given an inequality and the price, return all the restaurants that satisfy the given parameter
+     * @param s  String representation of an inequality symbol
+     * @param num price rating
+     * @return
+     * @throws IllegalArgumentException
+     */
     public Set<String> priceAtom(String s, int num) throws IllegalArgumentException{
         Set<String> retSet = new HashSet<>();
         if(num > 5 || num < 0){
@@ -627,6 +692,13 @@ public class YelpDataBase implements MP5Db {
         return retSet;
     }
 
+    /**
+     * Given an inequality and a rating, return all the restaurants that satisfy the given parameter
+     * @param s String representation of an inequality symbol
+     * @param num rating
+     * @return
+     * @throws IllegalArgumentException
+     */
     public Set<String> ratingAtom(String s, int num) throws IllegalArgumentException{
         Set<String> retSet = new HashSet<>();
         if(num > 5 || num < 0){

@@ -1,8 +1,14 @@
 package ca.ece.ubc.cpen221.mp5.Antlr;
 
 import org.antlr.v4.runtime.*;
+/**
+ * Taken from definitive antlr4 reference, page 186:
+ * This is used to modify the "error strategy" of antlr" - by default, antlr chooses to try to recover
+ * from erroneous text met during the parsing stage, but because we do not care if the text doesn't match
+ * the specific guidelines outlined in MP5 Part 5, we modify the strategy to just abandon parsing and throw
+ * an exception when met with unparsable text.
+ */
 
-//taken from definitive antlr4 reference, page 186, used to throw errors that occur during parsing
 public class BailErrorStrategy extends DefaultErrorStrategy {
     @Override
     public void recover(Parser recognizer, RecognitionException e) {

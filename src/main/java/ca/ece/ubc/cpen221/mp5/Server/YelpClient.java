@@ -4,7 +4,11 @@ import javax.json.stream.JsonParsingException;
 import java.io.*;
 import java.net.Socket;
 
-
+/**
+ * a pretty abstract representation of a client, most of which is copied from fibonacci server
+ *
+ * Requests are terminated by a \n, which are added automatically for the sendReply() command
+ */
 public class YelpClient {
     private Socket socket;
     private BufferedReader in;
@@ -44,35 +48,5 @@ public class YelpClient {
         in.close();
         out.close();
         socket.close();
-    }
-
-    /**
-     * Use a FibonacciServer to find the first N Fibonacci numbers.
-     */
-    public static void main(String[] args) {
-        try {
-            YelpClient client = new YelpClient("localhost", YelpServer.YELP_PORT);
-
-            client.sendRequest("GETRESTAURANT BJKIoQa5N2T_oDlLVf467Q");
-
-            client.sendRequest("ADDUSER {\"name\": \"Sathish G.\"}");
-
-            client.sendRequest("QUERY in(Telegraph Ave) && (category(Chinese) || category(Italian)) && price <= 2");
-
-            client.sendRequest("QUERY LDSKFJAw3 && dslakfa");
-            String reply = client.getReply();
-            String reply1 = client.getReply();
-            String reply2 = client.getReply();
-            String reply3 = client.getReply();
-
-            System.out.println("reply:" + reply + "\nreply: " + reply1 + "\nreply: " + reply2);
-            System.out.println("reply: " + reply3);
-
-
-            client.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
     }
 }

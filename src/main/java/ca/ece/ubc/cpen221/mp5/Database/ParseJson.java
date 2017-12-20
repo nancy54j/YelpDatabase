@@ -13,6 +13,11 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+/**
+ * This is a utility class just used to parse given the json files that were given to us, and contains other useful
+ * methods when performing operations related to json format things, like converting a restaurant object
+ * into a json string or converting a generics array into a jsonarray.
+ */
 public class ParseJson {
     Set<Restaurant> restaurants;
     Set<Review> reviews;
@@ -23,6 +28,16 @@ public class ParseJson {
 
 
     //https://stackoverflow.com/questions/16265693/how-to-use-buffered-reader-in-java
+
+    /**
+     * the main constructor of the object, which takes in the three file locations of the datasets in
+     * json form, and does all of the parsing within the constructor. Exceptions related to files and
+     * parsers are caught and printed on the screen, allowing the parser to skip some sections.
+     *
+     * @param users
+     * @param businesses
+     * @param reviews
+     */
     public ParseJson(String users, String businesses, String reviews){
         this.restaurants = new HashSet<>();
         this.reviews = new HashSet<>();
@@ -90,6 +105,14 @@ public class ParseJson {
         }
     }
 
+    /**
+     * creates a Review object given the json string representation of the review
+     * It will throw a nullpointerexception of it tries to find json categories that are not present
+     * in the string.
+     * @param review
+     * @return
+     * @throws ParseException if the date cannot be converted into unix time
+     */
     public static Review parseJsonReview (JsonObject review) throws ParseException{
         //convert date to unix time
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
@@ -103,6 +126,13 @@ public class ParseJson {
                 review.getString("business_id"), unixtime, upvotes);
     }
 
+    /**
+     * creates a restaurantuser object given the json string representation of the restaurantuser.
+     * It will throw a nullpointerexception if it tries to find a json category that isn't present
+     * in the string.
+     * @param user
+     * @return
+     */
     public static RestaurantUser parseJsonRestUser(JsonObject user){
         String url = user.getString("url");
         JsonObject vote = user.getJsonObject("votes");
@@ -115,6 +145,13 @@ public class ParseJson {
         return new RestaurantUser(name, user_id, url, aveStar, votes, reviewCount);
     }
 
+    /**
+     * creates a restaurant object given the json string representation of the restaurant.
+     * It will throw a nullpointerexception if it tries to find a json category that isn't present
+     * in the string.
+     * @param restaurant
+     * @return
+     */
     public static Restaurant parseJsonRestaurant(JsonObject restaurant){
         String url = restaurant.getString("url");
         double longitude = restaurant.getJsonNumber("longitude").doubleValue();
@@ -153,6 +190,12 @@ public class ParseJson {
                 latitude, longitude, stars, reviewCount, price, categories, schools, photo_url);
     }
 
+    /**
+     * this does the opposite of parseJsonRestaurant, in that it changes a restaurant object back into
+     * a Json string. Can be considered the inverse function of ParseJsonRestaurant
+     * @param r
+     * @return
+     */
     public static String restToJson(Restaurant r){
         JsonBuilderFactory f = Json.createBuilderFactory(null);
         JsonArrayBuilder neighbourhoodarray = f.createArrayBuilder();
@@ -181,6 +224,13 @@ public class ParseJson {
         return restaurant.toString();
     }
 
+    /**
+     * converts any sort of collection object into a Json string representation using the
+     * toString() method of the object.
+     * @param c
+     * @param <T>
+     * @return
+     */
     public static <T> String arrayToJson(Collection<T> c){
         JsonBuilderFactory f = Json.createBuilderFactory(null);
         JsonArrayBuilder retArray = f.createArrayBuilder();
@@ -191,29 +241,53 @@ public class ParseJson {
         return retArray.toString();
     }
 
-    //returns a map of unique ids to its respective restaurant
+    /**
+     * this returns the map of restaurant id -> restaurant object after the Json constructor has finished
+     * parsing the dataset
+     * @return
+     */
     public Map<String, Restaurant> getrestMap(){
         return restMap;
     }
 
-    //returns a map of unique ids to its respective user
+    /**
+     * returns the map of restaurant user id -> restaurant user object after the Json constructor has
+     * finished parsing the user dataset
+     * @return
+     */
     public Map<String, RestaurantUser> getUserMap(){
         return userMap;
     }
 
-    //returns a map of unique ids to its respective reviews
+    /**
+     * returns the map of review id -> review object after the Json constructor has finished
+     * parsing the review dataset
+     * @return
+     */
     public Map<String, Review> getReviewMap(){
         return reviewMap;
     }
 
+    /**
+     * returns a set of restaurant objects from the dataset
+     * @return
+     */
     public Set<Restaurant> getRestaurants(){
         return restaurants;
     }
 
+    /**
+     * returns a set of user objects from the dataset
+     * @return
+     */
     public Set<RestaurantUser> getUsers(){
         return users;
     }
 
+    /**
+     * returns a set of review objects from the dataset
+     * @return
+     */
     public Set<Review> getReviews(){
         return reviews;
     }

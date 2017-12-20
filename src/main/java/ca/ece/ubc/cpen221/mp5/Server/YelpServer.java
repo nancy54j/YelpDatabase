@@ -3,7 +3,6 @@ package ca.ece.ubc.cpen221.mp5.Server;
 import ca.ece.ubc.cpen221.mp5.Database.YelpDataBase;
 
 import javax.json.JsonException;
-import javax.json.stream.JsonParsingException;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -11,6 +10,14 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * server implementation of the database. Once the server has been started, it will block onto a
+ * client has successfully connected to the server. Each client that connects to the server will be
+ * given its own thread and the thread will be closed at the termination of the connection.
+ *
+ * (Frankly, java server stuff is pretty abstracted, so I don't really have a concrete idea of
+ * what's going on XD)
+ */
 public class YelpServer {
 
     public static final int YELP_PORT = 4949;
@@ -48,13 +55,20 @@ public class YelpServer {
         BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
 
-
-        //TODO: star rating cannot be over 5
+        /*
+        Here is where the string recieved by the server is actually parsed. It is
+        first matched by regex to be separated into the different commands this server can handle,
+        and then it extracts the relevant text and calls the relevant YelpDataBase method.
+        Errors are also caught here, and at the end, the corresponding return string is set back to
+        the user.
+        */
         try {
             String line;
             while ((line = br.readLine()) != null) {
                 System.out.println("String recieved:" + line);
                 if (line.matches("^GETRESTAURANT .*")) {
+                    //creating a matcher from a pattern seems really ugly, but honestly, I have no idea
+                    //how else I'm supposed to capture specific text from regex LOL
                     Matcher m = Pattern.compile("^(?:GETRESTAURANT )(.*)$").matcher(line);
                     if (m.find()) {
                         try {
@@ -132,15 +146,4 @@ public class YelpServer {
             out.close();
         }
     }
-
-
-    public static void main(String[] args){
-        try{
-            YelpServer server = new YelpServer();
-            server.serve();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
 }

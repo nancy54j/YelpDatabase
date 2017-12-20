@@ -1,7 +1,5 @@
 package ca.ece.ubc.cpen221.mp5.Review;
 
-import ca.ece.ubc.cpen221.mp5.Review.Review;
-
 import java.util.Set;
 
 public interface Reviewable {
