@@ -20,13 +20,19 @@ import java.util.regex.Pattern;
  */
 public class YelpServer {
 
-    public static final int YELP_PORT = 4949;
+    public static int YELP_PORT = 4949;
 
     private ServerSocket serversocket;
     YelpDataBase ydb;
 
     public YelpServer() throws IOException {
         ydb = new YelpDataBase();
+        serversocket = new ServerSocket(YELP_PORT);
+    }
+
+    public YelpServer(int port) throws IOException{
+        ydb = new YelpDataBase();
+        YELP_PORT = port;
         serversocket = new ServerSocket(YELP_PORT);
     }
 
@@ -145,5 +151,10 @@ public class YelpServer {
             br.close();
             out.close();
         }
+    }
+
+    public static void main(String [] args) throws IOException{
+        YelpServer ys = new YelpServer(Integer.parseInt(args[0]));
+        ys.serve();
     }
 }
